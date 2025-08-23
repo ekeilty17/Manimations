@@ -4,11 +4,37 @@ from mpmath import mpc
 
 class ConformalMapScenes(Scene):
 
+    GRID_LINES_Z_INDEX = 1
+    NET_Z_INDEX = 10
+    LABEL_TEXT_Z_INDEX = 50
+    LABEL_BG_Z_INDEX = 49
+
     def apply_2D_complex_function(self, T, p):
         x, y = p[0], p[1]
         z = mpc(x, y)  # high-precision complex number
         w = T(z)
         return np.array([float(w.real), float(w.imag), 0])
+
+    def get_rectangle_label_text(self, variable_name, real, imag):
+        return MathTex(
+            variable_name,
+            r" = ", 
+            f"{real:.2f}",
+            "-" if imag < 0 else "+",
+            f"{abs(imag):.2f}",
+            r"\ i",
+            substrings_to_isolate=[variable_name]
+        )
+
+    def get_label_background(self, label, buff=0.1):
+        bg = BackgroundRectangle(label, color=BLACK, fill_opacity=1, buff=buff)
+        bg.set_z_index(self.LABEL_BG_Z_INDEX)
+        return bg
+    def get_label_background_bugged(self, label, buff=0.3):
+        bg = Rectangle(width=label.width/3 + buff, height=label.height/4 + buff, color=BLACK, fill_opacity=1)
+        bg.move_to(label.get_center())
+        bg.set_z_index(self.LABEL_BG_Z_INDEX)
+        return bg
 
     def get_cartesian_net(
         self, 
@@ -41,11 +67,15 @@ class ConformalMapScenes(Scene):
         for x in x_func(start_x, end_x, num_x):
             x_line = Line(start=RIGHT*start_y+UP*x, end=RIGHT*end_y+UP*x, color=x_color)
             x_lines.append(x_line)
+            x_line.insert_n_curves(num_sample)  # Increase the number of Bezier curves (default is 9)
+            x_line.make_smooth()
 
         y_lines = []
         for y in y_func(start_y, end_y, num_y):
             y_line = Line(start=UP*start_x+RIGHT*y, end=UP*end_x+RIGHT*y, color=y_color)
             y_lines.append(y_line)
+            y_line.insert_n_curves(num_sample)  # Increase the number of Bezier curves (default is 9)
+            y_line.make_smooth()
         
         return x_lines, y_lines
 
@@ -91,13 +121,13 @@ class ConformalMapScenes(Scene):
             arcs.append(arc)
         
         rays = []
-        for j, theta in enumerate(ray_func(start_angle, angle, num_ray)):
-            if theta == start_angle + angle:
+        for j, theta in enumerate(ray_func(start_angle, start_angle+angle, num_ray)):
+            if theta == angle:
                 continue
             start = start_radius*RIGHT*np.cos(theta) + start_radius*UP*np.sin(theta)
             end = radius*RIGHT*np.cos(theta) + radius*UP*np.sin(theta)
-            ray = Line(start=start, end=end, color=ray_color[j], stroke_width=1.5)
-            ray.insert_n_curves(100)  # Increase the number of Bezier curves (default is 9)
+            ray = Line(start=start, end=end, color=ray_color[j], stroke_width=1.75)
+            ray.insert_n_curves(num_sample)  # Increase the number of Bezier curves (default is 9)
             ray.make_smooth()
             rays.append(ray)
         
