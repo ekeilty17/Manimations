@@ -6,6 +6,7 @@ class ConformalMapScenes(Scene):
 
     GRID_LINES_Z_INDEX = 1
     NET_Z_INDEX = 10
+    DOT_Z_INDEX = 20
     LABEL_TEXT_Z_INDEX = 50
     LABEL_BG_Z_INDEX = 49
 

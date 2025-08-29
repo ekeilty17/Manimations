@@ -214,6 +214,7 @@ class SteinerNet(ConformalMapScenes):
             num_sample=NUM_SAMPLES
         )
         polar_net = arcs + rays
+        polar_net = [mob.set_z_index(self.NET_Z_INDEX) for mob in polar_net]
         return polar_net
 
     def initial_transformation_old(self, polar_net, w_plane_text, z_plane_text):
@@ -333,8 +334,10 @@ class SteinerNet(ConformalMapScenes):
         k_explanation.scale(0.8).to_edge(RIGHT).shift(DOWN).set_z_index(self.LABEL_TEXT_Z_INDEX)
         k_explanation_bg = self.get_label_background(k_explanation)
 
+        inverse_steiner_with_k_bg = self.get_label_background(inverse_steiner_formula_with_k)
         inverse_steiner_formula_with_k.to_corner(UL)
-        inverse_steiner_with_k_bg = self.get_label_background_bugged(inverse_steiner_formula_with_k)
+        inverse_steiner_with_k_bg.move_to(inverse_steiner_formula_with_k.get_center())
+
         self.play(
             Create(k_explanation_bg), Write(k_explanation),
             TransformMatchingShapes(inverse_steiner_formula, inverse_steiner_formula_with_k),
@@ -415,9 +418,9 @@ class SteinerNet(ConformalMapScenes):
 
 
         # Transition: Scene 1 --> Scene 2
+        inverse_steiner_bg = self.get_label_background(inverse_steiner_formula)
         inverse_steiner_formula.to_corner(UL)
-        inverse_steiner_bg = self.get_label_background_bugged(inverse_steiner_formula)
-        inverse_steiner_bg.set_z_index(self.LABEL_BG_Z_INDEX)
+        inverse_steiner_bg.move_to(inverse_steiner_formula.get_center())
         self.play(
             TransformMatchingShapes(inverse_steiner_formula_with_k, inverse_steiner_formula),
             FadeIn(inverse_steiner_bg)
