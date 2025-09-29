@@ -4,8 +4,10 @@ import numpy as np
 
 class GreekConstructionScene(Scene):
     
-    """ Most of the init is the color scheme
-        Note, there is also a config.py file which mostly is choosing a color palet """
+    """ 
+    Most of the init is the color scheme
+    Note, there is also a config.py file which mostly is choosing a color palet
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -62,16 +64,16 @@ class GreekConstructionScene(Scene):
             return Create(obj)
 
     # FIXME: I don't think this really gets used
-    @staticmethod
-    def get_n_gon_coordinates(self, n, center, start):
-        center, start = self.to_coordinate(center), self.to_coordinate(start)
+    # @staticmethod
+    # def get_n_gon_coordinates(self, n, center, start):
+    #     center, start = self.to_coordinate(center), self.to_coordinate(start)
 
-        vector = c2 - c1
-        radius = np.linalg.norm(vector)
-        start_angle = np.arctan2(vector[1], vector[0])#Line(c1, c2, color=self.default_color).get_angle()
-        diff_angle = 2*PI/n
-        n_gon_coords = [ center + [radius * np.cos(start_angle - i*diff_theta), radius * np.sin(start_angle - i*diff_angle), 0] for i in range(n) ]
-        return n_gon_coords
+    #     vector = c2 - c1
+    #     radius = np.linalg.norm(vector)
+    #     start_angle = np.arctan2(vector[1], vector[0])#Line(c1, c2, color=self.default_color).get_angle()
+    #     diff_angle = 2*PI/n
+    #     n_gon_coords = [ center + [radius * np.cos(start_angle - i*diff_theta), radius * np.sin(start_angle - i*diff_angle), 0] for i in range(n) ]
+    #     return n_gon_coords
 
     """ Helpful bookkeeping functions to make animiations less busy """
     def make_background_object(self, *args):
