@@ -59,24 +59,34 @@ def get_perpendicular(C, line_AB):
     return D, line_CD
 
 def Animate(*mobjects):
-    if len(mobjects) == 1:
-        mobject = mobjects[0]
-        if isinstance(mobject, Dot):
-            return GrowFromCenter(mobject)
-        if isinstance(mobject, Text) or isinstance(mobject, MathTex):
-            return Write(mobject)
-        return Create(mobject)
-    return [Animate(mob) for mob in mobjects]
+    if len(mobjects) == 0:
+        raise TypeError("No input provided.")
+    if len(mobjects) > 1:
+        return [Animate(mob) for mob in mobjects]
+    
+    mobject = mobjects[0]
+    if isinstance(mobject, VGroup):
+        return [Animate(mob) for mob in mobject]
+    if isinstance(mobject, Dot):
+        return GrowFromCenter(mobject)
+    if isinstance(mobject, Text) or isinstance(mobject, MathTex):
+        return Write(mobject)
+    return Create(mobject)
 
 def Unanimate(*mobjects):
-    if len(mobjects) == 1:
-        mobject = mobjects[0]
-        if isinstance(mobject, Dot):
-            return ShrinkToCenter(mobject)
-        if isinstance(mobject, Text) or isinstance(mobject, MathTex):
-            return Unwrite(mobject)
-        return Uncreate(mobject)
-    return [Unanimate(mob) for mob in mobjects]
+    if len(mobjects) == 0:
+        raise TypeError("No input provided.")
+    if len(mobjects) > 1:
+        return [Unanimate(mob) for mob in mobjects]
+    
+    mobject = mobjects[0]
+    if isinstance(mobject, VGroup):
+        return [Unanimate(mob) for mob in mobject]
+    if isinstance(mobject, Dot):
+        return ShrinkToCenter(mobject)
+    if isinstance(mobject, Text) or isinstance(mobject, MathTex):
+        return Unwrite(mobject)
+    return Uncreate(mobject)
 
 def get_value_tracker_of_point(point):
     return ValueTracker(point[0]), ValueTracker(point[1]), ValueTracker(point[2])

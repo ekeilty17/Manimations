@@ -104,9 +104,9 @@ class Book1Prop4(GreekConstructionScenes):
 
         superposition_shift = self.superposition_shift_x.get_value() * RIGHT + self.superposition_shift_y.get_value() * UP
         
-        A_D, label_A_D = self.get_dot_and_label("A', D", A.get_center() + superposition_shift, UP)
-        B_E, label_B_E = self.get_dot_and_label("B', E", B.get_center() + superposition_shift, DL)
-        C_F, label_C_F = self.get_dot_and_label("C', F", C.get_center() + superposition_shift, DR)
+        A_D, label_A_D = self.get_dot_and_label("A', D'", A.get_center() + superposition_shift, UP)
+        B_E, label_B_E = self.get_dot_and_label("B', E'", B.get_center() + superposition_shift, DL)
+        C_F, label_C_F = self.get_dot_and_label("C', F'", C.get_center() + superposition_shift, DR)
         
         line_AB_DE = Line(A_D.get_center(), B_E.get_center())
         line_BC_EF = Line(B_E.get_center(), C_F.get_center())
@@ -128,54 +128,35 @@ class Book1Prop4(GreekConstructionScenes):
             angle_A_D_marker, angle_B_E_marker, angle_C_F_marker
         )
         solution = (
-            line_BC_marker, line_BC_EF_marker, line_CA_FD_marker, line_EF_marker,
-            angle_B_marker, angle_B_E_marker, angle_C_marker, angle_C_F_marker, angle_E_marker, angle_F_marker,
+            line_BC_marker, line_EF_marker,
+            angle_B_marker, angle_C_marker, angle_E_marker, angle_F_marker,
         )
         return intermediaries, solution
 
     def get_proof_spec(self):
         return [
-            ("|AB ~ |DE",                       "[Given]",                  self.GIVEN),
-            ("|AC ~ |DF",                       "[Given]",                  self.GIVEN),
-            ("<BAC ~ <EDF",                     "[Given]",                  self.GIVEN),
+            ("|AB ~= |DE",       "[Given]",         self.GIVEN),
+            ("|AC ~= |DF",       "[Given]",         self.GIVEN),
+            ("<A ~= <D",         "[Given]",         self.GIVEN),
             
-            ("|AB ~ |A'B'",                     "[Prop. 3]"),
-            ("|A'B' = |DE , A' = D , B' = E",   "[1. + 4. + Def. 3]"),
-            
-            ("|AC ~ |A'C'",                     "[Prop. 3]"),
-            ("|A'C' = |DF , C' = F",            "[2. + 6. + Def. 3]"),
-            
-            ("<B'A'C' = <EDF",                  "[5. + 7. + ??]"),
-            ("|B'C' = |EF",                  "[??]"),
-            # ((r"\angle B'A'C'", r"\equiv", r"\angle EDF"),              "[4. + 6. + Def. 8]"),
-            # ((r"\angle BAC", r"\cong", r"\angle B'A'C'"),               "[3. + 8. + Transitivity]"),
+            ("A c= D",          "[Superposition]"),
+            ("|AB c= |DE",      "[Superposition]"),
+            ("<A c= <D",        "[Superposition]"),
+            ("|AC c= |DF",      "[Superposition]"),
 
-            # ((r"\overline{B'C'}", r"\equiv", r"\overline{EF}"),         "[6. + 8. + Post. 1]"),
-            # ((r"\overline{BC}", r"\cong", r"\overline{EF}"),            "[Superposition]",          self.SOLUTION),
+            ("B c= E",          "[Superposition]"),
+            ("C c= F",          "[Superposition]"),
 
-            # ((r"\angle A'B'C'", r"\equiv", r"\angle DEF"),              "[Def. 20]"),
-            # ((r"\angle ABC", r"\cong", r"\angle DEF"),                  "[Superposition]",          self.SOLUTION),
+            ("|BC c= |EF",      "[Post. 1]"),
 
-            # ((r"\angle A'C'B'", r"\equiv", r"\angle DFE"),              "[Def. 20]"),
-            # ((r"\angle ACB", r"\cong", r"\angle DFE"),                  "[Superposition]",          self.SOLUTION),
+            ("^ABC ~= ^EDF",    "[CN. 4]",          self.SOLUTION),
 
-            # ((r"\triangle ABC", r"\cong", r"\triangle DEF"),            "[Def. 20]",                self.SOLUTION),
+            ("|BC ~= |EF",      "[CN. 4]",          self.SOLUTION),
+            ("<B ~= <E",        "[CN. 4]",          self.SOLUTION),
+            ("<C ~= <F",        "[CN. 4]",          self.SOLUTION),
         ]
     def get_proof_color_map(self):
-        return {
-            # r"\overline{AB}": self.given_color,
-            # r"\overline{AC}": self.given_color,
-            # r"\overline{DE}": self.given_color,
-            # r"\overline{DF}": self.given_color,
-            # r"\angle BAC": self.given_color,
-            # r"\angle EDF": self.given_color,
-            # r"\overline{BC}": self.solution_color,
-            # r"\overline{EF}": self.solution_color,
-            # r"\angle ABC": self.solution_color,
-            # r"\angle DEF": self.solution_color,
-            # r"\angle ACB": self.solution_color,
-            # r"\angle DFE": self.solution_color,
-        }
+        return {}
 
     def construct(self):
 
@@ -208,8 +189,8 @@ class Book1Prop4(GreekConstructionScenes):
             angle_A_D_marker, angle_B_E_marker, angle_C_F_marker
         ) = solution_intermediaries
         (
-            line_BC_marker, line_BC_EF_marker, line_CA_FD_marker, line_EF_marker,
-            angle_B_marker, angle_B_E_marker, angle_C_marker, angle_C_F_marker, angle_E_marker, angle_F_marker,
+            line_BC_marker, line_EF_marker,
+            angle_B_marker, angle_C_marker, angle_E_marker, angle_F_marker,
         ) = solution
 
         """ Introduction """
@@ -247,119 +228,131 @@ class Book1Prop4(GreekConstructionScenes):
         """ Proof Initialization """
         proof_line_numbers, proof_lines = self.initialize_proof(scale=0.8)
         self.play(Write(proof_line_numbers))
-        # self.play(Write(proof_lines[0]), Write(proof_lines[1]), Write(proof_lines[2]))
-        self.play(Write(proof_lines))
+        self.play_proof_line(
+            *proof_lines[0:3],
+            source_mobjects=[
+                A, B, C, D, E, F,
+                label_A, label_B, label_C, label_D, label_E, label_F,
+                line_AB, line_CA, line_DE, line_FD,
+                line_AB_marker, line_CA_marker, line_DE_marker, line_FD_marker,
+                angle_A_marker, angle_D_marker,
+            ]
+        )
         self.wait()
-
-        self.remove(D, E, F, label_D, label_E, label_F, line_DE, line_EF, line_FD, line_DE_marker, line_EF_marker, line_FD_marker)
-        self.add(*solution_intermediaries, *solution)
-        self.wait()
-
-        return
 
         """ Animation """
-
+        # Set A on top of D
         self.play(
-            ReplacementTransform(A.copy(), A_D), Transform(D, A_D),
-            ReplacementTransform(label_A.copy(), label_A_D), Transform(label_D, label_A_D),
-            ReplacementTransform(B.copy(), B_E), Transform(E, B_E),
-            ReplacementTransform(label_B.copy(), label_B_E), Transform(label_E, label_B_E),
-            ReplacementTransform(line_AB.copy(), line_AB_DE), Transform(line_DE, line_AB_DE),
-            # ReplacementTransform(line_AB_marker.copy(), line_AB_DE_marker), Transform(line_DE_marker, line_AB_DE_marker),
+            self.ReplaceTransformN2M((A, D), A_D, copy_source=True),
+            self.ReplaceTransformN2M((label_A, label_D), label_A_D, copy_source=True),
+            run_time=self.default_run_time
         )
-        self.remove(D, E, label_D, label_E, line_DE, line_AB_DE_marker)
+        self.ReplaceTransformN2M_cleanup()
         self.wait()
-        self.emphasize(
-            A, B, A_D, B_E,
-            label_A, label_B, label_A_D, label_B_E,
-            line_AB, line_AB_DE,
-            line_AB_marker, line_DE_marker, line_AB_DE_marker,
+        self.play_proof_line(
+            proof_lines[3],
+            source_mobjects=[
+                A, D, A_D,
+                label_A, label_D, label_A_D,
+            ]
         )
-        self.wait()
-        self.play(Write(proof_lines[3]))
-        self.play(Write(proof_lines[4]))
-        self.wait()
-        self.undo_emphasize()
 
+        # Givens coincide
+        self.play(
+            self.ReplaceTransformN2M((line_AB, line_DE), line_AB_DE, copy_source=True),
+            self.ReplaceTransformN2M((line_CA, line_FD), line_CA_FD, copy_source=True),
+
+            self.ReplaceTransformN2M((line_AB_marker, line_DE_marker), line_AB_DE_marker, copy_source=True),
+            self.ReplaceTransformN2M((line_CA_marker, line_FD_marker), line_CA_FD_marker, copy_source=True),
+            self.ReplaceTransformN2M((angle_A_marker, angle_D_marker), angle_A_D_marker, copy_source=True),
+
+            run_time=self.default_run_time
+        )
+        self.ReplaceTransformN2M_cleanup()
+        self.wait()
+        self.play_proof_line(
+            *proof_lines[4:7],
+            source_mobjects=[
+                line_AB, line_CA, line_EF, line_FD, line_AB_DE, line_CA_FD,
+                line_AB_marker, line_CA_marker, line_EF_marker, line_FD_marker, line_AB_DE_marker, line_CA_FD_marker,
+                angle_A_marker, angle_D_marker, angle_A_D_marker
+            ]
+        )
+        self.wait()
+
+        # Points B and E coincide
+        self.play(
+            self.ReplaceTransformN2M((B, E), B_E, copy_source=True),
+            self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
+
+            self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True),
+            self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+
+            run_time=self.default_run_time
+        )
+        self.ReplaceTransformN2M_cleanup()
+        self.play_proof_line(
+            *proof_lines[7:9],
+            source_mobjects=[
+                B, C, E, F, B_E, C_F,
+                label_B, label_C, label_E, label_F, label_B_E, label_C_F,
+            ]
+        )
+
+        # Proving that line_BC must coincide with line_EF
+        self.emphasize(
+            B, C, E, F, B_E, C_F,
+            label_B, label_C, label_E, label_F, label_B_E, label_C_F,
+            line_BC, line_EF,
+        )
+        line_BC_EF_arc = ArcBetweenPoints(B_E.get_center(), C_F.get_center()).set_z_index(line_BC_EF.z_index)
+        shaded_region = VMobject(color=RED, fill_opacity=0.5, stroke_width=0)
+        shaded_region.set_points_as_corners([
+            *line_BC_EF_arc.points,
+            B_E.get_center(),
+            C_F.get_center(),
+        ])
+        shaded_region.close_path()
+        self.play(
+            self.ReplaceTransformN2M((B, E), B_E, copy_source=True), 
+            self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
+            self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True), 
+            self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+            self.ReplaceTransformN2M(line_BC, line_BC_EF, copy_source=True),
+            self.ReplaceTransformN2M(line_BC, line_BC_EF_arc, copy_source=True),
+            FadeIn(shaded_region),
+            run_time=self.default_run_time
+        )
+        self.ReplaceTransformN2M_cleanup()
         self.wait()
         
         self.play(
-            ReplacementTransform(line_CA.copy(), line_CA_FD), Transform(line_FD, line_CA_FD),
-            ReplacementTransform(C.copy(), C_F), Transform(F.copy(), C_F),
-            ReplacementTransform(label_C.copy(), label_C_F), Transform(label_F.copy(), label_C_F)
-            # ReplacementTransform(line_CA_marker.copy(), line_CA_FD_marker), Transform(line_FD_marker, line_CA_FD_marker),
+            self.ReplaceTransformN2M((line_BC_EF_arc, shaded_region), line_BC_EF),
+            run_time=self.default_run_time
         )
-        self.remove(F, label_F, line_FD, line_CA_FD_marker)
+        self.ReplaceTransformN2M_cleanup()
         self.wait()
+        self.play_proof_line(proof_lines[9])
+        self.undo_emphasize()
+        
+        # Therefore Triangle ABC is congruent to Triangle DEF
         self.emphasize(
-            A, C, A_D, C_F,
-            label_A, label_C, label_A_D, label_C_F,
-            line_CA, line_CA_FD,
-            line_CA_marker, line_FD_marker, line_CA_FD_marker,
+            A, B, C, D, E, F, A_D, B_E, C_F,
+            label_A, label_B, label_C, label_D, label_E, label_F, label_A_D, label_B_E, label_C_F,
+            line_AB, line_BC, line_CA, line_DE, line_EF, line_FD, line_AB_DE, line_BC_EF, line_CA_FD,
         )
+        self.play_proof_line(proof_lines[10])
+        
         self.wait()
-        self.play(Write(proof_lines[5]))
-        self.play(Write(proof_lines[6]))
-        self.wait()
+
+        # And the rest of the triangle parts are congruent
+        self.custom_play(
+            line_BC_marker, line_EF_marker, line_BC_EF_marker,
+            angle_B_marker, angle_C_marker, angle_E_marker, 
+            angle_F_marker, angle_B_E_marker, angle_C_F_marker
+        )
+        self.play_proof_line(*proof_lines[11:14])
         self.undo_emphasize()
 
         self.wait()
-        
-        self.emphasize(
-            A, B, C, A_D, B_E, C_F,
-            label_A, label_B, label_C, label_A_D, label_B_E, label_C_F,
-            line_AB, line_CA, line_AB_DE, line_CA_FD,
-            line_AB_marker, line_DE_marker, line_CA_marker, line_FD_marker, line_AB_DE_marker, line_CA_FD_marker,
-        )
-        self.wait()
-        self.play(Write(proof_lines[7]))
-        self.play(Write(proof_lines[8]))
-        self.wait()
-        self.undo_emphasize()
-
-        self.wait()
-        
-        self.emphasize(
-            B, C, B_E, C_F,
-            label_B, label_C, label_B_E, label_C_F,
-            line_BC, line_EF, line_BC_EF
-        )
-        self.wait()
-        self.remove(line_EF)
-        self.add(line_BC_EF)
-        self.custom_play(line_BC_marker, line_EF_marker, line_BC_EF_marker)
-        self.play(Write(proof_lines[9]))
-        self.play(Write(proof_lines[10]))
-        self.wait()
-        self.undo_emphasize()
-        
-        self.emphasize(
-            A, B, C, A_D, B_E, C_F,
-            label_A, label_B, label_C, label_A_D, label_B_E, label_C_F,
-            line_AB, line_BC, line_DE, line_EF, line_AB_DE, line_BC_EF
-        )
-        self.wait()
-        self.custom_play(angle_B_marker, angle_E_marker, angle_B_E_marker)
-        self.wait()
-        self.play(Write(proof_lines[11]))
-        self.play(Write(proof_lines[12]))
-        self.wait()
-        self.undo_emphasize()
-        
-        self.emphasize(
-            A, B, C, A_D, B_E, C_F,
-            label_A, label_B, label_C, label_A_D, label_B_E, label_C_F,
-            line_BC, line_CA, line_DE, line_EF, line_BC_EF, line_CA_FD, 
-        )
-        self.wait()
-        self.custom_play(angle_C_marker, angle_F_marker, angle_C_F_marker)
-        self.wait()
-        self.play(Write(proof_lines[13]))
-        self.play(Write(proof_lines[14]))
-        self.wait()
-        self.undo_emphasize()
-
-        self.wait()
-
-        self.play(Write(proof_lines[15]))
-        self.wait()
+        self.write_QED()

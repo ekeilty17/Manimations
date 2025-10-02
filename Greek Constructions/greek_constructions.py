@@ -1,8 +1,11 @@
 from manim import *
+from manim.mobject.mobject import _AnimationBuilder
+
 from utils import *
 
 # https://manim-themes.readthedocs.io/en/latest/index.html
 from manim_themes.manim_theme import apply_theme
+from utils.text import parse_statement
 
 class GreekConstructionScenes(Scene):
 
@@ -12,6 +15,8 @@ class GreekConstructionScenes(Scene):
         
         self.non_construction_mobjects = []
         self.mobjects_to_deemphasize = []
+        self.replace_transform_mobjects_to_add = []
+        self.replace_transform_mobjects_to_remove = []
 
         self.GIVEN = "given"
         self.SOLUTION = "solution"
@@ -59,13 +64,7 @@ class GreekConstructionScenes(Scene):
         theme = "Monokai Pro Light" # select a theme from https://iterm2colorschemes.com
         apply_theme(manim_scene=self, theme_name=theme, light_theme=True) # use the theme
 
-    # """ Wrapper Methods """
-    # def play(self, *args, run_time=None, **kwargs):
-    #     if run_time is None:
-    #         run_time = self.default_run_time
-    #     super().play(*args, run_time=run_time, **kwargs)
-
-    """ Initialize Stuff """
+    """ Initialize Aspects of the Scene """
     def _initialize_canvas(self):
         LHS_bg = Rectangle(
             width=config.frame_width / 2,
@@ -91,11 +90,14 @@ class GreekConstructionScenes(Scene):
         if add_updaters:
             for mob in all_construction_mobjects:
                 mob.add_updater(lambda _, mob=mob: self._all_construction_mobject_updater(givens, given_intermediaries, solution_intermediaries, solution))
+        # else:
+        #     for mob in all_construction_mobjects:
+        #         mob.clear_updaters()
 
         return givens, given_intermediaries, solution_intermediaries, solution
 
     def initialize_introduction(self, title_text, description_text):
-        description_text = description_text.replace("\t", "")
+        description_text = "\n".join([line.strip() for line in description_text.split("\n")])
         title = Text(title_text).scale(self.TITLE_SCALE).set_z_index(self.proof_z_index)
         description = Text(description_text).scale(self.DESCRIPTION_SCALE).set_z_index(self.proof_z_index)
         description.next_to(title, 2*DOWN)
@@ -108,7 +110,7 @@ class GreekConstructionScenes(Scene):
 
     def initialize_proof(self, scale=1):
         proof_spec = self.get_proof_spec()
-        proof_color_map = self.get_proof_color_map()
+        tex_to_color_map = self.get_tex_to_color_map()
         
         proof_spec = [(t[0], t[1], (t[2] if len(t) > 2 else None)) for t in proof_spec]
         proof_spec = [
@@ -118,32 +120,46 @@ class GreekConstructionScenes(Scene):
                 self.type_to_color_map.get(line_type)
             ) for statement, justification, line_type in proof_spec
         ]
-        proof = format_and_prepare_proof(proof_spec, proof_color_map, scale=scale)
+        proof = format_and_prepare_proof(proof_spec, tex_to_color_map, scale=scale)
         proof.to_edge(LEFT).set_z_index(self.proof_z_index)
 
         proof_line_numbers = VGroup([line_number for line_number, _, _ in proof])
         proof_lines = VGroup([VGroup(statement, justification) for _, statement, justification in proof])
 
         self.non_construction_mobjects.append(proof_line_numbers)
+        for number in proof_line_numbers:
+            self.non_construction_mobjects.append(number)
+
+        self.non_construction_mobjects.append(proof_lines)
         for proof_line in proof_lines:
             self.non_construction_mobjects.append(proof_line)
+            statement, justification = proof_line
+            self.non_construction_mobjects.append(statement)
+            self.non_construction_mobjects.append(justification)
 
         return proof_line_numbers, proof_lines
 
-    def write_QED(self, position=None):
-        QED_text = MathTex(r"\text{Q.E.D.}").scale(1.2).set_z_index(self.proof_z_index+3)
-        QED_bg = BackgroundRectangle(QED_text, color=self.camera.background_color, fill_opacity=1, buff=0.1).set_z_index(self.proof_z_index+2)
-        QED = VGroup(QED_text, QED_bg)
-        if position is None:
-            QED.to_edge(DOWN)
-        else:
-            QED.move_to(position)
-        self.play(Write(QED_text), FadeIn(QED_bg))
+    def initialize_footnotes(self, scale=0.6):
+        footnotes = self.get_footnotes()
+        tex_to_color_map = self.get_tex_to_color_map()
+        
+        formatted_footnotes = format_and_parse_footnotes(footnotes, tex_to_color_map, scale=scale)
 
-    """ Abtract Methods """
+        formatted_footnotes.to_edge(DOWN).shift(self.RIGHT_CENTER[0] * RIGHT)
+        for footnote in formatted_footnotes:
+            footnote.set_z_index(self.proof_z_index)
+            self.non_construction_mobjects.append(footnote)
+            for footnote_line in footnote:
+                self.non_construction_mobjects.append(footnote_line)
+        
+        return formatted_footnotes
+
+    """ Methods Implemented by each Scene """
     def get_proof_spec(self):
         raise NotImplementedError("'get_proof_spec' not implemented by child class.")
-    def get_proof_color_map(self):
+    def get_footnotes(self):
+        return []
+    def get_tex_to_color_map(self):
         raise NotImplementedError("'get_proof_color_map' not implemented by child class.")
     def get_givens(self):
         raise NotImplementedError("'get_givens' not implemented by child class.")
@@ -202,7 +218,7 @@ class GreekConstructionScenes(Scene):
         ])
         self.mobjects_to_deemphasize = []
 
-    """ Miscellaneous Methods """
+    """ Custom Animation or Mobject Creation Script """
     def get_vertical_center_line(self, offset=0, stroke_width=4):
         top = UP * config.frame_height / 2 + offset * RIGHT
         bottom = DOWN * config.frame_height / 2 + offset * RIGHT
@@ -236,39 +252,89 @@ class GreekConstructionScenes(Scene):
 
         return dot, label
 
-    def custom_play(self, *mobjects, run_time=None, **kwargs):
+    def custom_play(self, *animations, run_time=None, **kwargs):
         if run_time is None:
             run_time = self.default_run_time
-        mobject_copies = [mobject.copy().clear_updaters() for mobject in mobjects]
-        self.play(Animate(*mobject_copies), run_time=run_time, **kwargs)
-        self.remove(*mobject_copies)
-        self.add(*mobjects)
-    
-    def custom_unplay(self, *mobjects, run_time=None, **kwargs):
-        if run_time is None:
-            run_time = self.default_run_time
-        self.play(Unanimate(*mobjects), run_time=run_time, **kwargs)
+        
+        mobjects_to_add = []
+        mobjects_to_remove = []
+        for anim in animations:
+            if isinstance(anim, _AnimationBuilder):
+                continue
+            if not isinstance(anim, Animation):
+                raise TypeError(f"Expected Animation, got {type(anim)}")
+            
+            if isinstance(anim, (Uncreate, Unwrite, FadeOut, ShrinkToCenter)):
+                continue
+            
+            if isinstance(anim, ReplacementTransform):
+                continue
 
-    def play_proof_line(self, *proof_lines, constructable_mobjects=None, **kwargs):
-        if constructable_mobjects is None:
-            constructable_mobjects = [
+            if isinstance(anim, (Create, Write, FadeIn, GrowFromCenter, Transform)):
+                mobjects_to_add.append(anim.mobject)
+                anim.mobject = anim.mobject.copy().clear_updaters()
+                mobjects_to_remove.append(anim.mobject)
+
+        self.play(*animations, run_time=run_time, **kwargs)
+        self.remove(*mobjects_to_remove)
+        self.add(*mobjects_to_add)
+
+    def animate_proof_line(self, *proof_lines, source_mobjects=None, **kwargs):
+        if source_mobjects is None:
+            source_mobjects = [
                 mobject for mobject in self.mobjects 
                 if all([mobject is not deemphasized_mobject for deemphasized_mobject in self.mobjects_to_deemphasize]) \
                 and not any([mobject is non_construction_mobject for non_construction_mobject in self.non_construction_mobjects])
             ]
         
-        constructable_mobjects = [
-            mob for mob in constructable_mobjects \
+        source_mobjects = [
+            mob for mob in source_mobjects \
                 if any([isinstance(mob, mob_type) for mob_type in [Text, MathTex, Dot, Line, Circle, Angle, RightAngle]])
         ]
-        constructable_mobjects = VGroup(constructable_mobjects).copy()
-        for mob_copy in constructable_mobjects:
+        source_mobjects = VGroup(source_mobjects).copy()
+        for mob_copy in source_mobjects:
             mob_copy.set_z_index(self.proof_z_index)
 
         proof_line_vgroup = VGroup(proof_lines)
-        self.play(Transform(constructable_mobjects, proof_line_vgroup, replace_mobject_with_target_in_scene=True), **kwargs)
+        self.play(Transform(source_mobjects, proof_line_vgroup, replace_mobject_with_target_in_scene=True), **kwargs)
         self.remove(proof_line_vgroup)
         self.add(*proof_lines)
+
+    def write_QED(self, position=None):
+        QED_text = MathTex(r"\text{Q.E.D.}").scale(1.2).set_z_index(self.proof_z_index+3)
+        QED_bg = BackgroundRectangle(QED_text, color=self.camera.background_color, fill_opacity=1, buff=0.1).set_z_index(self.proof_z_index+2)
+        QED = VGroup(QED_text, QED_bg)
+        if position is None:
+            QED.to_edge(DOWN)
+        else:
+            QED.move_to(position)
+        self.play(Write(QED_text), FadeIn(QED_bg))
+
+    """ Custom ReplaceTransform """
+    def ReplaceTransformN2M(self, source_mobjects, target_mobjects, copy_source=False):
+        if not isinstance(source_mobjects, list) and not isinstance(source_mobjects, tuple):
+            source_mobjects = [source_mobjects]
+        if not isinstance(target_mobjects, list) and not isinstance(target_mobjects, tuple):
+            target_mobjects = [target_mobjects]
+        if copy_source:
+            source_mobjects = [mob.copy() for mob in source_mobjects]
+        target_mobject_copies = [mob.copy() for mob in target_mobjects]
+
+        animations = [
+            ReplacementTransform(source_mob, target_mob)
+            for source_mob in source_mobjects
+            for target_mob in target_mobject_copies
+        ]
+
+        self.replace_transform_mobjects_to_remove.extend(target_mobject_copies)
+        self.replace_transform_mobjects_to_add.extend(target_mobjects)
+        return animations
+
+    def ReplaceTransformN2M_cleanup(self):
+        self.remove(*self.replace_transform_mobjects_to_remove)
+        self.add(*self.replace_transform_mobjects_to_add)
+        self.replace_transform_mobjects_to_remove = []
+        self.replace_transform_mobjects_to_add = []
 
     """ Helper Methods """
     # Used in `emphasize` and `undo_emphasize`

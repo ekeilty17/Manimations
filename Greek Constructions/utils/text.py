@@ -1,12 +1,15 @@
 from manim import *
+import re
 
 def parse_statement(statement_short_hand):
-    if isinstance(statement_short_hand, tuple):
-        return list(statement_short_hand)
+    if isinstance(statement_short_hand, tuple) or isinstance(statement_short_hand, list):
+        return [x for substatement in statement_short_hand for x in parse_statement(substatement)]
     
     character_map = {
-        "~": r"\cong",
+        "~": r"\sim",
+        "~=": r"\cong",
         "=": r"\equiv",
+        "c=": r"\text{ coincides with }",
         ",": r", \ ",
         "<": r"<",
         ">": r">",
@@ -14,6 +17,12 @@ def parse_statement(statement_short_hand):
         "!=": r"\not \equiv",
         "right": r"\text{right}",
         "perp": r"\perp",
+        "->": r"\rightarrow",
+        "<-": r"\leftarrow",
+        "<->": r"\leftrightarrow",
+        "=>": r"\Rightarrow",
+        "<=": r"\Leftarrow",
+        "<=>": r"\Leftrightarrow",
     }
 
     statement = []
@@ -85,3 +94,37 @@ def format_and_prepare_proof(lines, tex_to_color_map=None, scale=1):
         proof.scale(scale)
 
         return proof
+
+
+def format_and_parse_footnotes(footnotes, tex_to_color_map=None, scale=1):
+    tex_to_color_map = None if tex_to_color_map is None else {parse_statement(key)[0]: value for key, value in tex_to_color_map.items()}
+    
+    formatted_footnotes = []
+    for footnote_text in footnotes:
+        footnote_lines = [line.strip() for line in footnote_text.split("\n") if line.strip()]
+        formatted_footnote_lines = []
+        for line in footnote_lines:
+            pattern = r'(\\text+\{.*?\})'
+            substrings = re.split(pattern, line)
+
+            parsed_substrings = []
+            for substring in substrings:
+                substring = substring.strip()
+                if not substring:
+                    continue
+                if r"\text" in substring:
+                    parsed_substrings.append(substring)
+                    continue
+                for x in substring.split(" "):
+                    parsed_substrings.extend(parse_statement(x))
+            
+            formatted_footnote_lines.append(
+                MathTex(*parsed_substrings).set_color_by_tex_to_color_map(tex_to_color_map)
+            )
+        
+        formatted_footnote_lines = VGroup(formatted_footnote_lines).arrange(DOWN, aligned_edge=LEFT)
+        
+        formatted_footnotes.append(formatted_footnote_lines)
+    
+    formatted_footnotes = VGroup(formatted_footnotes).scale(scale)
+    return formatted_footnotes

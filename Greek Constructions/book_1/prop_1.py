@@ -47,21 +47,41 @@ class Book1Prop1(GreekConstructionScenes):
 
     def get_proof_spec(self):
         return [    
-            ("|AB ~ |BC",                                "[Def. 15]"),
-            ("|AB ~ |AC",                                "[Def. 15]"),
-            ("|BC ~ |AC",                                "[Transitivity]"),
-            (r"\triangle ABC \text{ is equilateral}",   "[Def. 20]",        self.SOLUTION)
+            ("|AB ~= |BC",                              "[Def. 15]"),
+            ("|AB ~= |AC",                              "[Def. 15]"),
+            ("|BC ~= |AC",                              "[Transitivity]"),
+            (("^ABC", r"\text{ is equilateral}"),   "[Def. 20]",        self.SOLUTION)
         ]
-    def get_proof_color_map(self):
+    def get_tex_to_color_map(self):
         return {
+            "{A}": self.given_color,
+            "{B}": self.given_color,
+            "{C}": self.solution_color,
             "|AB": self.given_color,
+            "|BA": self.given_color,
             "|AC": self.solution_color,
             "|BC": self.solution_color,
+            "^ABC": self.solution_color,
         }
-    # def get_footnotes(self):
-    #     return [
-    #         r"\textbf{Def. 15} \text{: } "
-    #     ]
+    def get_footnotes(self):
+        return [
+            r"""
+            \text{By Post. 3, a circle can be}
+            \text{drawn given center } {A} \text{ and radius } |AB
+            """,
+            r"""
+            \text{Likewise by Post. 3, a circle can be}
+            \text{drawn given center } {B} \text{ and radius } |BA
+            """,
+            r"""
+            \text{By Post. 1, a line can be}
+            \text{drawn between points } {B} \text{ and } {C}
+            """,
+            r"""
+            \text{Likewise by Post. 1, a line can be}
+            \text{drawn between points } {A} \text{ and } {C}
+            """
+        ]
 
     def construct(self):
         
@@ -82,33 +102,41 @@ class Book1Prop1(GreekConstructionScenes):
         tmp1 = [mob.copy() for mob in [C, label_C, line_BC, line_CA]]
         tmp2 = [mob.copy() for mob in [line_AB_marker, line_BC_marker, line_CA_marker]]
         self.wait()
-        self.custom_play(title, description, *tmp1, *tmp2)
+        self.custom_play(*Animate(title, description, *tmp1, *tmp2))
         self.wait(2)
-        self.custom_unplay(title, description, *tmp1, *tmp2)
+        self.custom_play(*Unanimate(title, description, *tmp1, *tmp2))
         self.wait()
         
         """ Proof Initialization """
+        footnotes = self.initialize_footnotes()
         proof_line_numbers, proof_lines = self.initialize_proof()
-        self.play(Write(proof_line_numbers))
+        self.play(*Animate(proof_line_numbers))
 
         """ Animation """
-        self.custom_play(circle_A)
+        self.custom_play(*Animate(footnotes[0]))
+        self.custom_play(Animate(circle_A))
         self.wait()
-        self.custom_play(circle_B)
+        
+        self.custom_play(ReplacementTransform(footnotes[0], footnotes[1]))
         self.wait()
-        self.custom_play(C, label_C)
+        self.custom_play(Animate(circle_B))
         self.wait()
-        self.custom_play(line_BC)
-        self.custom_play(line_CA)
+        self.custom_play(*Animate(C, label_C))
+        self.wait()
+        self.custom_play(ReplacementTransform(footnotes[1], footnotes[2]))
+        self.custom_play(Animate(line_BC))
+        self.custom_play(ReplacementTransform(footnotes[2], footnotes[3]))
+        self.custom_play(Animate(line_CA))
+        # self.custom_play(*Animate(footnotes[3]))
         
         self.wait()
         
         self.emphasize(A, label_A, B, label_B, C, label_C, circle_B, line_AB, line_BC)
         self.wait()
-        self.custom_play(line_AB_marker, line_BC_marker)
+        self.custom_play(*Animate(line_AB_marker, line_BC_marker))
         self.wait()
         # self.play(Write(proof_lines[0]))
-        self.play_proof_line(proof_lines[0])
+        self.animate_proof_line(proof_lines[0])
         # print(self.mobjects_to_emphasize)
         # self.play(Transform(Group(*self.mobjects_to_emphasize).copy(), proof_lines[0]))
         self.wait(2)
@@ -118,10 +146,10 @@ class Book1Prop1(GreekConstructionScenes):
 
         self.emphasize(A, label_A, B, label_B, C, label_C, circle_A, line_AB, line_CA, line_AB_marker)
         self.wait()
-        self.custom_play(line_CA_marker)
+        self.custom_play(Animate(line_CA_marker))
         self.wait()
         # self.play(Write(proof_lines[1]))
-        self.play_proof_line(proof_lines[1])
+        self.animate_proof_line(proof_lines[1])
         self.wait(2)
         self.undo_emphasize()
 
@@ -130,7 +158,7 @@ class Book1Prop1(GreekConstructionScenes):
         self.emphasize(A, label_A, B, label_B, C, label_C, line_BC, line_CA, line_BC_marker, line_CA_marker)
         self.wait()
         # self.play(Write(proof_lines[2]))
-        self.play_proof_line(proof_lines[2])
+        self.animate_proof_line(proof_lines[2])
         self.wait(2)
         self.undo_emphasize()
 
@@ -139,7 +167,7 @@ class Book1Prop1(GreekConstructionScenes):
         self.emphasize(A, label_A, B, label_B, C, label_C, line_AB, line_BC, line_CA, line_AB_marker, line_BC_marker, line_CA_marker)
         self.wait()
         # self.play(Write(proof_lines[3]))
-        self.play_proof_line(proof_lines[3])
+        self.animate_proof_line(proof_lines[3])
         self.wait(2)
         self.undo_emphasize()
 

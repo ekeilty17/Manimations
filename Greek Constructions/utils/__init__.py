@@ -3,4 +3,4 @@ from .circles import *
 from .dots import *
 from .lines import *
 from .misc import *
-from .proof import *
+from .text import *

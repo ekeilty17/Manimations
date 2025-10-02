@@ -59,9 +59,9 @@ class Book1Prop3(GreekConstructionScenes):
 
     def get_proof_spec(self):
         return [
-            ("|C ~ |AD",    "[Prop. 1.2]"),
-            ("|AD ~ |AE",   "[Def. 15]"),
-            ("|C ~ |AE",    "[Transitivity]",       self.SOLUTION),
+            ("|C ~= |AD",    "[Prop. 1.2]"),
+            ("|AD ~= |AE",   "[Def. 15]"),
+            ("|C ~= |AE",    "[Transitivity]",       self.SOLUTION),
         ]
     def get_proof_color_map(self):
         return {
@@ -115,7 +115,7 @@ class Book1Prop3(GreekConstructionScenes):
         self.add(line_AD)
         self.custom_play(D, label_D)
         self.wait()
-        line_AD_direction_text = MathTex(r"\begin{aligned}&\text{The direction of } \overline{AD} \text{ is determined} \\ &\text{by the procedure in Prop. 1.2}\end{aligned}")
+        line_AD_direction_text = MathTex(r"\text{The direction of }", r"\overline{AD}", r"\text{ is determined} \\ \text{by the procedure in Prop. 1.2}")
         line_AD_direction_text.scale(0.7).move_to(self.RIGHT_CENTER).shift(2*DOWN)
         self.custom_play(line_AD_direction_text)
         self.wait(2)
