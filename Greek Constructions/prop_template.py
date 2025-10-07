@@ -29,8 +29,10 @@ class BookNPropM(GreekConstructionScenes):
 
     def get_proof_spec(self):
         raise NotImplementedError("TODO")
+    def get_footnotes(self):
+        return []
     def get_proof_color_map(self):
-        raise NotImplementedError("TODO")
+        raise {}
 
     def construct(self):
         
@@ -38,7 +40,11 @@ class BookNPropM(GreekConstructionScenes):
         self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*LEFT)
         self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*RIGHT)
 
-        """ Preparation """
+        """ Variable Initialization """
+        title, description = self.initialize_introduction()
+        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
+
         givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
         self.add(*givens, *given_intermediaries)
 
@@ -50,20 +56,13 @@ class BookNPropM(GreekConstructionScenes):
         # G, H, I = solution_intermediaries
         # J, K, L = solution
 
-        """ Introduction """
-        title, description = self.initialize_introduction(self.title, self.description)
-        
-        self.custom_play(title, description)
+        """ Animate Introduction """
         self.wait()
-        self.custom_unplay(title, description)
+
+        self.custom_play(*Animate(title, description))
+        self.wait(2)
+        self.custom_play(*Unanimate(title, description))
         self.wait()
-        # tmp1 = [mob.copy() for mob in [A, B, C]]
-        # tmp2 = [mob.copy() for mob in [D, E, F]]
-        # self.play(Animate(*tmp1))
-        # self.play(Animate(*tmp2))
-        # self.wait()
-        # self.play(Unanimate(title, description, *tmp1, *tmp2))
-        # self.wait()
         
         """ Proof Initialization """
         proof_line_numbers, proof_lines = self.initialize_proof()

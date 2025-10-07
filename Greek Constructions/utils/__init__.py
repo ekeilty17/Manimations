@@ -1,4 +1,5 @@
 from .angles import *
+from .animations import *
 from .circles import *
 from .dots import *
 from .lines import *

@@ -65,3 +65,16 @@ def get_line_marker(
     if len(marker) == 1:
         marker = marker[0]
     return marker
+
+def get_perpendicular(C, line_AB):
+    A = line_AB.get_start()
+    B = line_AB.get_end()
+    C = C.get_center()
+    
+    AB = B - A
+    AC = C - A
+    t = np.dot(AC, AB) / np.linalg.norm(AB)**2
+    
+    D = Dot(A + t * AB)
+    line_CD = Line(C, D.get_center())
+    return D, line_CD

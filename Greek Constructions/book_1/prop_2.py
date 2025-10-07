@@ -78,15 +78,62 @@ class Book1Prop2(GreekConstructionScenes):
 
     def get_proof_spec(self):
         return [    
-            (r"\triangle ABD \text{ is equilateral}",   "[Prop. 1.1]"),
-            ("|AB ~ |BD ~ |AD",                         "[Def. 20]"),
-            ("|BC ~ |BG",                               "[Def. 15]"),
-            ("|DL ~ |DG",                               "[Def. 15]"),
-            ("|AL ~ |BG",                               "[Subtraction]"),
-            ("|AL ~ |BC",                               "[Transitivity]",   self.SOLUTION),
+            (("^ABD", r"\text{ is equilateral}"),   "[Prop. 1.1]"),
+            ("|AB ~= |BD ~= |AD",                   "[Def. 20]"),
+            ("|BC ~= |BG",                          "[Def. 15]"),
+            ("|DL ~= |DG",                          "[Def. 15]"),
+            ("|AL ~= |BG",                          "[CN. 3]"),
+            ("|AL ~= |BC",                          "[CN. 1]",      self.SOLUTION),
         ]
-    def get_proof_color_map(self):
+    def get_footnotes(self):
+        return [
+            r"""
+            \text{By Post. 1, line } |AB \text{ can be}
+            \text{drawn between points } {A} \text{ and } {B}
+            """,
+            r"""
+            \text{By Prop. 1.1, construct equilateral}
+            \text{triangle } ^ABD \text{ with base } |AB
+            """,
+            r"""
+            \text{By Post. 3, construct } ()BC
+            \text{with center } {B} \text{ and radius } |BC
+            """,
+            r"""
+            \text{By Post. 1, extend line } |DB \text{ until it}
+            \text{intersects } ()BC \text{ at } {G}
+            """,
+            r"""
+            \text{Line } |BC \text{ and line } |BG \text{ are both radii of}
+            ()BC \text{, thus by Def. 15 they are congruent}
+            """,
+            r"""
+            \text{By Post. 3, construct } ()DG
+            \text{with center } {D} \text{ and radius } |DG
+            """,
+            r"""
+            \text{By Post. 1, extend line } |DA \text{ until it}
+            \text{intersects } ()DG \text{ at } {L}
+            """,
+            r"""
+            \text{Both line } |DG \text{ and line } |DL \text{ are radii of } 
+            ()DG \text{, thus by Def. 15 they are congruent}
+            """,
+            r"""
+            |DA + |AL = |DL ~= |DG = |DB + |BG \ \text{ and } |DA ~= |DB
+            \text{Therefore, } |AL ~= |BG \text{ by CN. 3 (Subtraction)}
+            """,
+            r"""
+            \text{By CN. 1 (Transitivity Property of Congruence), }
+            |BG ~= |BC \text{ and } |AL ~= |BG \ => \ |AL ~= |BC
+            """,
+        ]
+    def get_tex_to_color_map(self):
         return {
+            "{A}": self.given_color,
+            "{B}": self.given_color,
+            "{C}": self.given_color,
+            "{L}": self.solution_color,
             "|BC": self.given_color,
             "|AL": self.solution_color,
         }
@@ -94,11 +141,15 @@ class Book1Prop2(GreekConstructionScenes):
     def construct(self):
 
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(4*RIGHT + 1*DOWN)
-        self.Bx, self.By, _ = get_value_tracker_of_point(4.5*RIGHT)
-        self.Cx, self.Cy, _ = get_value_tracker_of_point(4.5*RIGHT + 2*UP)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(3.8*RIGHT + 0.3*DOWN)
+        self.Bx, self.By, _ = get_value_tracker_of_point(4.5*RIGHT + 0.5*UP)
+        self.Cx, self.Cy, _ = get_value_tracker_of_point(4.5*RIGHT + 2.5*UP)
 
-        """ Preparation """
+        """ Variable Initialization """
+        title, description = self.initialize_introduction()
+        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
+
         givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
         self.add(*givens, *given_intermediaries)
 
@@ -112,108 +163,160 @@ class Book1Prop2(GreekConstructionScenes):
         ) = solution_intermediaries
         L, label_L, line_AL = solution
 
-        """ Introduction """
-        title, description = self.initialize_introduction(self.title, self.description)
+        """ Animate Introduction """
+        self.wait()
+
+        tmp = [mob.copy() for mob in [line_AL_marker, line_BC_marker]]
+        line_AL_copy = line_AL.copy()
+        L_copy = L.copy()
+        self.custom_play(
+            *Animate(title, description),
+            ReplacementTransform(line_BC.copy(), line_AL_copy), ReplacementTransform(C.copy(), L_copy)
+        )
+        self.custom_play(*Animate(*tmp))
+        self.wait(3)
+        self.custom_play(*Unanimate(title, description, *tmp, line_AL_copy, L_copy))
+        self.wait()
         
-        line_BC_tmp = line_BC.copy()
-        line_AL_tmp = line_AL.copy()
-        C_tmp = C.copy()
-        L_tmp = L.copy()
-        tmp = [mob.copy() for mob in [line_BC_marker, line_AL_marker]]
-        self.play(
-            Transform(line_BC_tmp, line_AL_tmp), Transform(C_tmp, L_tmp),
-            Animate(title, description, *tmp),
-            run_time=self.default_run_time
+        """ Animate Proof Line Numbers """
+        self.animate_proof_line_numbers(proof_line_numbers)
+        self.wait()
+
+        """ Animation Construction """
+        # Equilateral triangle ABD
+        self.custom_play(
+            Animate(line_AB),
+            first_footnote_animation
         )
         self.wait(2)
-        self.custom_unplay(title, description, line_BC_tmp, line_AL_tmp, L_tmp, C_tmp, *tmp)
+        self.custom_play(*Animate(D, label_D))
+        self.custom_play(
+            *Animate(line_BD, line_DA, line_AB_marker, line_BD_marker, line_DA_marker),
+            next_footnote_animations[0]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            *proof_lines[0:2],
+            source_mobjects=[
+                A, B, D, 
+                label_A, label_B, label_D,
+                line_AB, line_BD, line_DA, 
+                line_AB_marker, line_BD_marker, line_DA_marker
+            ]
+        )
+
+        self.wait(2)
+
+        # Draw ()BC
+        self.custom_play(
+            Animate(circle_B),
+            next_footnote_animations[1]
+        )
+        self.wait(3)
+
+        # Extend |DB to point G
+        self.custom_play(
+            Animate(line_BG),
+            next_footnote_animations[2]
+        )
+        self.custom_play(*Animate(G, label_G))
+        self.wait(2)
+        self.custom_play(
+            *Animate(line_BC_marker, line_BG_marker),
+            next_footnote_animations[3]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[2],
+            source_mobjects=[
+                B, C, G, 
+                label_B, label_C, label_G,
+                line_BC, line_BG, 
+                circle_B
+            ]
+        )
+
+        self.wait(2)
+
+        # Draw ()DG
+        self.emphasize(
+            D, G, 
+            label_D, label_G, 
+            line_BD, line_BG,
+        play=True)
         self.wait()
+        self.custom_play(
+            Animate(circle_D),
+            next_footnote_animations[4]
+        )
+
+        self.wait(2)
         
-
-        """ Proof Initialization """
-        proof_line_numbers, proof_lines = self.initialize_proof()
-        self.play(Write(proof_line_numbers))
-        self.wait()
-
-
-        """ Animation """
-        # Equilateral triangle
-        self.custom_play(line_AB)
-        self.custom_play(D, label_D, line_BD, line_DA)
-        self.custom_play(line_AB_marker, line_BD_marker, line_DA_marker)
-        self.wait()
+        # Extend |DA to point L
         self.emphasize(
-            A, B, D, 
-            label_A, label_B, label_D,
-            line_AB, line_BD, line_DA, 
-            line_AB_marker, line_BD_marker, line_DA_marker
+            A, B, D, G, 
+            label_A, label_B, label_D, label_G, 
+            line_BD, line_BG, line_DA, 
+            circle_D, 
+            line_BD_marker, line_BG_marker, line_DA_marker,
+        play=True)
+        self.wait()
+        self.custom_play(
+            Animate(line_AL),
+            next_footnote_animations[5]
         )
-        self.wait()
-        # self.play(Write(proof_lines[0]))
-        # self.play(Write(proof_lines[1]))
-        self.play_proof_line(*proof_lines[0:2])
-        self.wait()
-        self.undo_emphasize()
-
-        self.wait()
-
-        # Copy line_BC and reorient in direction of line_BD
-        self.custom_play(circle_B)
-        self.custom_play(line_BG)
-        self.custom_play(G, label_G)
-        self.wait()
-        self.emphasize(
-            B, C, G, 
-            label_B, label_C, label_G,
-            line_BC, line_BG, 
-            circle_B
+        self.custom_play(*Animate(L, label_L))
+       
+        self.wait(2)
+        
+        # self.emphasize(
+        #     A, B, D, G, L,
+        #     label_A, label_B, label_D, label_G, label_L,
+        #     line_DA, line_AL, line_BD, line_BG, 
+        #     line_DA_marker, line_BD_marker, line_BG_marker, 
+        #     circle_D,
+        # play=True)
+        # self.wait()
+        self.custom_play(next_footnote_animations[6])
+        self.wait(3)
+        self.custom_play(
+            Animate(line_AL_marker),
+            next_footnote_animations[7]
         )
-        self.wait()
-        self.custom_play(line_BC_marker, line_BG_marker)
-        self.wait()
-        # self.play(Write(proof_lines[2]))
-        self.play_proof_line(proof_lines[2])
-        self.wait()
-        self.undo_emphasize()
+        self.wait(2)
+        self.animate_proof_line(*proof_lines[3:5])
 
-        self.wait()
+        self.wait(2)
 
-        # Extend line_DA to circle_D
-        self.custom_play(circle_D)
-        self.custom_play(line_AL)
-        self.custom_play(L, label_L)
-        self.wait()
-        self.emphasize(
-            A, B, D, G, L,
-            label_A, label_B, label_D, label_G, label_L,
-            line_DA, line_AL, line_BD, line_BG, 
-            line_DA_marker, line_BD_marker, line_BG_marker, 
-            circle_D
+        # Therefore, |AL ~= BC
+        emphasize_animations = self.emphasize(
+            A, B, C, G, L,
+            label_A, label_B, label_C, label_G, label_L,
+            line_AL, line_BC, line_BG,
+            line_AL_marker, line_BC_marker, line_BG_marker,
         )
-        self.wait()
-        self.custom_play(line_AL_marker)
-        self.wait()
-        # self.play(Write(proof_lines[3]))
-        # self.play(Write(proof_lines[4]))
-        self.play_proof_line(*proof_lines[3:5])
-        self.wait()
-        self.undo_emphasize()
-
-        self.wait()
-
-        self.emphasize(
-            A, B, C, L,
-            label_A, label_B, label_C, label_L,
-            line_AL, line_BC, 
-            line_AL_marker, line_BC_marker
+        self.custom_play(
+            *emphasize_animations,
+            next_footnote_animations[8]
         )
-        self.wait()
-        # self.play(Write(proof_lines[5]))
-        self.play_proof_line(proof_lines[5])
-        self.wait()
-        self.undo_emphasize()
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[5],
+            source_mobjects=[
+                A, B, C, L,
+                label_A, label_B, label_C, label_L,
+                line_AL, line_BC,
+                line_AL_marker, line_BC_marker,
+            ]
+        )
+        self.wait(2)
+        clear_emphasize_animations = self.clear_emphasize()
+        self.custom_play(
+            *clear_emphasize_animations,
+            last_footnote_animation
+        )
 
-        self.wait()
+        self.wait(2)
 
         self.write_QED()
         self.wait()

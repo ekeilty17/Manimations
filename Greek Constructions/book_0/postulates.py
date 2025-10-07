@@ -20,33 +20,39 @@ class Postulates(GreekConstructionScenes):
     """
 
     def postulate_1(self):
-        title, description = self.initialize_introduction(
-            "Postulate 1",
-            "A straight-line can be drawn\nbetween any two points"
+        title, description = self.get_explanation(
+            """
+            A straight-line can be drawn
+            between any two points
+            """,
+            title="Postulate 1",
         )
 
         A, label_A = self.get_dot_and_label("A", self.RIGHT_CENTER + LEFT + DOWN, DOWN)
         B, label_B = self.get_dot_and_label("B", self.RIGHT_CENTER + RIGHT, DOWN)
         line_AB = Line(A.get_center(), B.get_center())
-        line_A, line_B = extend_line_by_length(line_AB, 10)
+        line_A, line_B = extend_line_by_length(line_AB, 5)
         extended_line_AB = Line(line_A.get_end(), line_B.get_end())
 
         self.format_givens(A, label_A, B, label_B)
         self.format_solution(extended_line_AB)
 
-        self.add(A, B, label_A, label_B)
-        self.play(Write(title))
-        self.play(Write(description))
-        self.play(Create(extended_line_AB))
+        self.custom_play(*Animate(title, description, A, B, label_A, label_B))
+        self.wait(2)
+        self.custom_play(Animate(extended_line_AB), run_time=2)
         
-        self.wait()
-        self.play(Unanimate(*[title, description, A, B, label_A, label_B, line_AB, extended_line_AB]))
+        self.wait(2)
+
+        self.custom_play(*Unanimate(title, description, A, B, label_A, label_B, line_AB, extended_line_AB), run_time=1)
         self.wait()
 
     def postulate_2(self):
-        title, description = self.initialize_introduction(
-            "Postulate 2",
-            "A finite straight-line can be segmented\nwithin a straight-line"
+        title, description = self.get_explanation(
+            """
+            A finite straight-line can be segmented
+            within a straight-line
+            """,
+            title="Postulate 2",
         )
 
         A, label_A = self.get_dot_and_label("A", self.RIGHT_CENTER + LEFT + DOWN, DOWN, z_index=self.solution_z_index)
@@ -59,19 +65,21 @@ class Postulates(GreekConstructionScenes):
         self.format_solution(line_AB)
 
         self.add(extended_line_AB)
-        self.play(Write(title))
-        self.play(Write(description))
-        self.play(Animate(A, B, label_A, label_B))
-        self.play(Create(line_AB))
+        self.custom_play(*Animate(title, description))
+        self.custom_play(Animate(A, B, label_A, label_B))
+        self.custom_play(Animate(line_AB), run_time=2)
         
         self.wait()
-        self.play(Unanimate(*[title, description, A, B, label_A, label_B, line_AB]))
+        self.custom_play(*Unanimate(title, description, A, B, label_A, label_B, line_AB))
         self.wait()
 
     def postulate_3(self):
-        title, description = self.initialize_introduction(
-            "Postulate 3",
-            "A circle can be drawn\ngiven a center and a radius"
+        title, description = self.get_explanation(
+            """
+            A circle can be drawn
+            given a center and a radius
+            """,
+            title="Postulate 3",
         )
 
         A, label_A = self.get_dot_and_label("A", self.RIGHT_CENTER + LEFT + DOWN, DL, z_index=self.solution_z_index)
@@ -83,35 +91,44 @@ class Postulates(GreekConstructionScenes):
         self.format_solution(circle_A)
 
         self.add(A, label_A, B, label_B, line_AB)
-        self.play(Write(title))
-        self.play(Write(description))
-        self.play(Animate(circle_A))
+        self.custom_play(*Animate(title, description))
+        self.custom_play(Animate(circle_A))
         
         self.wait()
-        self.play(Unanimate(*[title, description, A, B, label_A, label_B, line_AB, circle_A]))
+        self.custom_play(*Unanimate(title, description, A, B, label_A, label_B, line_AB, circle_A))
         self.wait()
 
     def postulate_4(self):
-        title, description = self.initialize_introduction(
-            "Postulate 4",
-            "All right-angles are equal"
+        title, description = self.get_explanation(
+            """
+            All right-angles are equal
+            """,
+            title="Postulate 4",
         )
 
     def postulate_5(self):
-        title, description = self.initialize_introduction(
-            "Postulate 5",
-            "Two straight-lines whose internal angles\nhave a sum of less than two right angles\neventually meet"
+        title, description = self.get_explanation(
+            """
+            Two straight-lines whose internal angles
+            have a sum of less than two right angles
+            eventually meet
+            """,
+            title="Postulate 5",
         )
 
     def postulate_5_modern(self):
-        title, description = self.initialize_introduction(
-            "Postulate 5 (Modern Version)",
-            "Given any straight-line and any point, there is exactly 1 parallel straight-line which goes through that point"
+        title, description = self.get_explanation(
+            """
+            Given any straight-line and any point, 
+            there is exactly 1 parallel straight-line 
+            which goes through that point
+            """,
+            title="Postulate 5 (Modern Version)",
         )
 
     def construct(self):
         # self.postulate_1()
-        # self.postulate_2()
+        self.postulate_2()
         # self.postulate_3()
         # self.postulate_4()
-        self.postulate_5()
+        # self.postulate_5()

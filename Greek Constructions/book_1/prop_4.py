@@ -22,7 +22,7 @@ class Book1Prop4(GreekConstructionScenes):
         (i.e. SAS congruency)
     """
 
-    def get_givens(self):
+    def write_givens(self):
         
         # A, label_A = self.get_dot_and_label("A", 3*UP+1.25*RIGHT, UP)
         # B, label_B = self.get_dot_and_label("B", A.get_center() + 2*DOWN + 0.75*LEFT, DL)
@@ -74,7 +74,7 @@ class Book1Prop4(GreekConstructionScenes):
         )
         return givens, intermediaries
 
-    def get_solution(self, *givens):
+    def write_solution(self, *givens):
 
         # (
         #     A, B, C, D, E, F,
@@ -133,7 +133,7 @@ class Book1Prop4(GreekConstructionScenes):
         )
         return intermediaries, solution
 
-    def get_proof_spec(self):
+    def write_proof_spec(self):
         return [
             ("|AB ~= |DE",       "[Given]",         self.GIVEN),
             ("|AC ~= |DF",       "[Given]",         self.GIVEN),
@@ -155,53 +155,74 @@ class Book1Prop4(GreekConstructionScenes):
             ("<B ~= <E",        "[CN. 4]",          self.SOLUTION),
             ("<C ~= <F",        "[CN. 4]",          self.SOLUTION),
         ]
-    def get_proof_color_map(self):
+   
+    def write_footnotes(self):
+        return [
+            r"""
+            \text{testing test}
+            \text{testing test}
+            """
+        ]
+    
+    def write_tex_to_color_map(self):
         return {}
 
     def construct(self):
 
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 2.75*UP + 2.5*LEFT )
-        self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 0.75*UP + 3*LEFT)
-        self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 0.75*UP + 0.5*LEFT)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 3.25*UP + 2.5*LEFT )
+        self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 1.25*UP + 3*LEFT)
+        self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 1.25*UP + 0.5*LEFT)
         self.triangle_DEF_shift_x,  self.triangle_DEF_shift_y, _= get_value_tracker_of_point(3.5*RIGHT)
-        self.superposition_shift_x, self.superposition_shift_y, _ = get_value_tracker_of_point(2*RIGHT + 3.75*DOWN)
+        self.superposition_shift_x, self.superposition_shift_y, _ = get_value_tracker_of_point(2*RIGHT + 3.25*DOWN)
 
-        """ Preparation """
-        givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
-        self.add(*givens, *given_intermediaries)
-        
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=False)
+        title, description = self.initialize_introduction()
+        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
+
+        """ Construction Variables """
         (
             line_AB_marker, line_CA_marker, line_DE_marker, line_FD_marker,
             angle_A_marker, angle_D_marker,
-        ) = givens
+        ) = self.givens
         (
             A, B, C, D, E, F,
             label_A, label_B, label_C, label_D, label_E, label_F,
             line_AB, line_CA, line_DE, line_FD,
             line_BC, line_EF,
-        ) = given_intermediaries
+        ) = self.given_intermediaries
         (
             A_D, B_E, C_F,
             label_A_D, label_B_E, label_C_F,
             line_AB_DE, line_BC_EF, line_CA_FD, 
             line_AB_DE_marker, line_BC_EF_marker, line_CA_FD_marker, 
             angle_A_D_marker, angle_B_E_marker, angle_C_F_marker
-        ) = solution_intermediaries
+        ) = self.solution_intermediaries
         (
             line_BC_marker, line_EF_marker,
             angle_B_marker, angle_C_marker, angle_E_marker, angle_F_marker,
-        ) = solution
+        ) = self.solution
 
-        """ Introduction """
-        title, description = self.initialize_introduction(self.title, self.description)
-        
-        tmp = [mob.copy() for mob in [line_BC_marker, line_EF_marker, angle_B_marker, angle_E_marker, angle_C_marker, angle_F_marker]]
-        self.custom_play(title, description, *tmp, run_time=1)
+        """ Animate Introduction """
+        center_shift = self.get_center_shift(*self.givens, *self.given_intermediaries, *self.solution)
+        givens_copy = VGroup(*self.givens, *self.given_intermediaries).copy().shift(center_shift)
+        solution_copy = VGroup(*self.solution).copy().shift(center_shift)
+
+        self.add(givens_copy)
+        self.wait()
+        self.custom_play(*Animate(title, description, *solution_copy))
         self.wait(3)
-        self.play(Unanimate(title, description, *tmp))
+        self.custom_play(*Unanimate(title, description, *solution_copy))
+        self.wait()
+        self.custom_play(givens_copy.animate.shift(-center_shift))
+        self.add(*self.givens, *self.given_intermediaries)
+        self.remove(givens_copy)
         self.wait()
 
+        return
         """ Preamble """
         superposition_explanation_text_1 = MathTex(r"""
             \begin{aligned}
@@ -219,16 +240,15 @@ class Book1Prop4(GreekConstructionScenes):
         """).scale(0.6).next_to(superposition_explanation_text_1, 3*DOWN).set_z_index(self.proof_z_index)
 
         _ = VGroup(superposition_explanation_text_1, superposition_explanation_text_2).move_to(self.LEFT_CENTER)
-        self.custom_play(superposition_explanation_text_1, superposition_explanation_text_2, run_time=1)
+        self.custom_play(*Animate(superposition_explanation_text_1, superposition_explanation_text_2))
         self.wait(3)
 
-        self.play(Unanimate(superposition_explanation_text_1), Unanimate(superposition_explanation_text_2))
+        self.custom_play(*Unanimate(superposition_explanation_text_1, superposition_explanation_text_2))
         self.wait()
 
         """ Proof Initialization """
-        proof_line_numbers, proof_lines = self.initialize_proof(scale=0.8)
-        self.play(Write(proof_line_numbers))
-        self.play_proof_line(
+        self.animate_proof_line_numbers(proof_line_numbers)
+        self.animate_proof_line(
             *proof_lines[0:3],
             source_mobjects=[
                 A, B, C, D, E, F,
@@ -242,14 +262,13 @@ class Book1Prop4(GreekConstructionScenes):
 
         """ Animation """
         # Set A on top of D
-        self.play(
-            self.ReplaceTransformN2M((A, D), A_D, copy_source=True),
-            self.ReplaceTransformN2M((label_A, label_D), label_A_D, copy_source=True),
-            run_time=self.default_run_time
+        self.custom_play(
+            *self.ReplaceTransformN2M((A, D), A_D, copy_source=True),
+            *self.ReplaceTransformN2M((label_A, label_D), label_A_D, copy_source=True)
         )
         self.ReplaceTransformN2M_cleanup()
         self.wait()
-        self.play_proof_line(
+        self.animate_proof_line(
             proof_lines[3],
             source_mobjects=[
                 A, D, A_D,
@@ -258,19 +277,19 @@ class Book1Prop4(GreekConstructionScenes):
         )
 
         # Givens coincide
-        self.play(
-            self.ReplaceTransformN2M((line_AB, line_DE), line_AB_DE, copy_source=True),
-            self.ReplaceTransformN2M((line_CA, line_FD), line_CA_FD, copy_source=True),
+        self.custom_play(
+            *self.ReplaceTransformN2M((line_AB, line_DE), line_AB_DE, copy_source=True),
+            *self.ReplaceTransformN2M((line_CA, line_FD), line_CA_FD, copy_source=True),
 
-            self.ReplaceTransformN2M((line_AB_marker, line_DE_marker), line_AB_DE_marker, copy_source=True),
-            self.ReplaceTransformN2M((line_CA_marker, line_FD_marker), line_CA_FD_marker, copy_source=True),
-            self.ReplaceTransformN2M((angle_A_marker, angle_D_marker), angle_A_D_marker, copy_source=True),
+            *self.ReplaceTransformN2M((line_AB_marker, line_DE_marker), line_AB_DE_marker, copy_source=True),
+            *self.ReplaceTransformN2M((line_CA_marker, line_FD_marker), line_CA_FD_marker, copy_source=True),
+            *self.ReplaceTransformN2M((angle_A_marker, angle_D_marker), angle_A_D_marker, copy_source=True),
 
             run_time=self.default_run_time
         )
         self.ReplaceTransformN2M_cleanup()
         self.wait()
-        self.play_proof_line(
+        self.animate_proof_line(
             *proof_lines[4:7],
             source_mobjects=[
                 line_AB, line_CA, line_EF, line_FD, line_AB_DE, line_CA_FD,
@@ -281,17 +300,15 @@ class Book1Prop4(GreekConstructionScenes):
         self.wait()
 
         # Points B and E coincide
-        self.play(
-            self.ReplaceTransformN2M((B, E), B_E, copy_source=True),
-            self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
+        self.custom_play(
+            *self.ReplaceTransformN2M((B, E), B_E, copy_source=True),
+            *self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
 
-            self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True),
-            self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
-
-            run_time=self.default_run_time
+            *self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True),
+            *self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
         )
         self.ReplaceTransformN2M_cleanup()
-        self.play_proof_line(
+        self.animate_proof_line(
             *proof_lines[7:9],
             source_mobjects=[
                 B, C, E, F, B_E, C_F,
@@ -313,27 +330,25 @@ class Book1Prop4(GreekConstructionScenes):
             C_F.get_center(),
         ])
         shaded_region.close_path()
-        self.play(
-            self.ReplaceTransformN2M((B, E), B_E, copy_source=True), 
-            self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
-            self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True), 
-            self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
-            self.ReplaceTransformN2M(line_BC, line_BC_EF, copy_source=True),
-            self.ReplaceTransformN2M(line_BC, line_BC_EF_arc, copy_source=True),
-            FadeIn(shaded_region),
-            run_time=self.default_run_time
+        self.custom_play(
+            *self.ReplaceTransformN2M((B, E), B_E, copy_source=True), 
+            *self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
+            *self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True), 
+            *self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+            *self.ReplaceTransformN2M(line_BC, line_BC_EF, copy_source=True),
+            *self.ReplaceTransformN2M(line_BC, line_BC_EF_arc, copy_source=True),
+            FadeIn(shaded_region)
         )
         self.ReplaceTransformN2M_cleanup()
         self.wait()
         
-        self.play(
-            self.ReplaceTransformN2M((line_BC_EF_arc, shaded_region), line_BC_EF),
-            run_time=self.default_run_time
+        self.custom_play(
+            *self.ReplaceTransformN2M((line_BC_EF_arc, shaded_region), line_BC_EF),
         )
         self.ReplaceTransformN2M_cleanup()
         self.wait()
-        self.play_proof_line(proof_lines[9])
-        self.undo_emphasize()
+        self.animate_proof_line(proof_lines[9])
+        self.clear_emphasize()
         
         # Therefore Triangle ABC is congruent to Triangle DEF
         self.emphasize(
@@ -341,18 +356,20 @@ class Book1Prop4(GreekConstructionScenes):
             label_A, label_B, label_C, label_D, label_E, label_F, label_A_D, label_B_E, label_C_F,
             line_AB, line_BC, line_CA, line_DE, line_EF, line_FD, line_AB_DE, line_BC_EF, line_CA_FD,
         )
-        self.play_proof_line(proof_lines[10])
+        self.animate_proof_line(proof_lines[10])
         
         self.wait()
 
         # And the rest of the triangle parts are congruent
         self.custom_play(
-            line_BC_marker, line_EF_marker, line_BC_EF_marker,
-            angle_B_marker, angle_C_marker, angle_E_marker, 
-            angle_F_marker, angle_B_E_marker, angle_C_F_marker
+            *Animate(
+                line_BC_marker, line_EF_marker, line_BC_EF_marker,
+                angle_B_marker, angle_C_marker, angle_E_marker, 
+                angle_F_marker, angle_B_E_marker, angle_C_F_marker
+            )
         )
-        self.play_proof_line(*proof_lines[11:14])
-        self.undo_emphasize()
+        self.animate_proof_line(*proof_lines[11:14])
+        self.clear_emphasize()
 
         self.wait()
         self.write_QED()

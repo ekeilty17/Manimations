@@ -79,7 +79,7 @@ class Book1Prop11(GreekConstructionScenes):
             ("|CF ~ |FC", "[Reflexivity]"),
             ("^DCF ~ ^ECF", "[Prop. 1.8 (SSS)]"),
             ("<DCF ~ <ECF", "[Prop. 1.8]"),
-            ("|FC perp |AB", "[??]"),
+            ("|FC perp |AB", "[Def. 10]"),
         ]
     def get_proof_color_map(self):
         return {

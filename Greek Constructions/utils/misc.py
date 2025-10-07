@@ -44,49 +44,6 @@ def get_line_circle_intersection(line, circle):
         return (Dot([pt.x, pt.y, 0]) for pt in inter.geoms)
     else:
         raise ValueError(f"Unexpected geometry type: {inter.geom_type}")
-    
-def get_perpendicular(C, line_AB):
-    A = line_AB.get_start()
-    B = line_AB.get_end()
-    C = C.get_center()
-    
-    AB = B - A
-    AC = C - A
-    t = np.dot(AC, AB) / np.linalg.norm(AB)**2
-    
-    D = Dot(A + t * AB)
-    line_CD = Line(C, D.get_center())
-    return D, line_CD
-
-def Animate(*mobjects):
-    if len(mobjects) == 0:
-        raise TypeError("No input provided.")
-    if len(mobjects) > 1:
-        return [Animate(mob) for mob in mobjects]
-    
-    mobject = mobjects[0]
-    if isinstance(mobject, VGroup):
-        return [Animate(mob) for mob in mobject]
-    if isinstance(mobject, Dot):
-        return GrowFromCenter(mobject)
-    if isinstance(mobject, Text) or isinstance(mobject, MathTex):
-        return Write(mobject)
-    return Create(mobject)
-
-def Unanimate(*mobjects):
-    if len(mobjects) == 0:
-        raise TypeError("No input provided.")
-    if len(mobjects) > 1:
-        return [Unanimate(mob) for mob in mobjects]
-    
-    mobject = mobjects[0]
-    if isinstance(mobject, VGroup):
-        return [Unanimate(mob) for mob in mobject]
-    if isinstance(mobject, Dot):
-        return ShrinkToCenter(mobject)
-    if isinstance(mobject, Text) or isinstance(mobject, MathTex):
-        return Unwrite(mobject)
-    return Uncreate(mobject)
 
 def get_value_tracker_of_point(point):
     return ValueTracker(point[0]), ValueTracker(point[1]), ValueTracker(point[2])

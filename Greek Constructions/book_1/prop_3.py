@@ -15,7 +15,7 @@ class Book1Prop3(GreekConstructionScenes):
         straight-line equal to the lesser
     """
 
-    def get_givens(self):
+    def write_givens(self):
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, DL)
         B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, RIGHT)
 
@@ -24,13 +24,13 @@ class Book1Prop3(GreekConstructionScenes):
             self.line_C_start_x.get_value() * RIGHT + self.line_C_start_y.get_value() * UP, 
             self.line_C_end_x.get_value() * RIGHT + self.line_C_end_y.get_value() * UP
         )
-        label_C = Text("C").scale(self.DOT_LABEL_SCALE).next_to(line_C.get_center(), UP, buff=MED_SMALL_BUFF)
+        _, label_C = self.get_dot_and_label("C", line_C.get_center(), UP, buff=MED_SMALL_BUFF)
 
         givens = (A, B, label_A, label_B, line_AB, line_C, label_C)
         intermediaries = ()
         return givens, intermediaries
 
-    def get_solution(self, *givens):
+    def write_solution(self, *givens):
         A, B, label_A, label_B, line_AB, line_C, label_C = givens
 
         line_AD = Line(A.get_center(), A.get_center() + line_C.get_length() * RIGHT).rotate(self.line_AD_direction.get_value(), about_point=A.get_center())
@@ -57,102 +57,144 @@ class Book1Prop3(GreekConstructionScenes):
         solution = (E, label_E, line_AE)
         return intermediaries, solution
 
-    def get_proof_spec(self):
+    def write_proof_spec(self):
         return [
             ("|C ~= |AD",    "[Prop. 1.2]"),
             ("|AD ~= |AE",   "[Def. 15]"),
-            ("|C ~= |AE",    "[Transitivity]",       self.SOLUTION),
+            ("|C ~= |AE",    "[CN. 1]",         self.SOLUTION),
         ]
-    def get_proof_color_map(self):
+    def write_footnotes(self):
+        return [
+            r"""
+            \text{Using the procedure in Prop. 1.2,}
+            \text{copy line } |C \text{ to point } {A}
+            """,
+            r"""
+            \text{The direction of line } |AD \text{ is determined}
+            \text{by the procedure of Prop. 1.2, however}
+            \text{we will treat it as pseudo-random}
+            """,
+            r"""
+            \text{By Post. 3, construct } ()AD
+            \text{with center } {A} \text{ and radius } |AD
+            """,
+            r"""
+            \text{Line } |AD \text{ and line } |AE \text{ are both radii of}
+            ()AD \text{, thus by Def. 15 they are congruent}
+            """,
+            r"""
+            \text{By CN. 1 (Transitivity Property of Congruence), }
+            |C ~= |AD \text{ and } |AD ~= |AE \ => \ |C ~= |AE
+            """,
+        ]
+    def write_tex_to_color_map(self):
         return {
-            "|C": self.given_color,
-            "|AE": self.solution_color,
+            "{A}": self.GIVEN,
+            "{B}": self.GIVEN,
+            "|C": self.GIVEN,
+            "|AE": self.SOLUTION,
         }
 
     def construct(self):
         
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(3*RIGHT + 0.5*DOWN)
-        self.Bx, self.By, _ = get_value_tracker_of_point(6*RIGHT + 0.5*DOWN)
-        self.line_C_start_x, self.line_C_start_y, _ = get_value_tracker_of_point(4*RIGHT + 2.75*UP)
-        self.line_C_end_x, self.line_C_end_y, _ = get_value_tracker_of_point(2*RIGHT + 2.25*UP)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(3*RIGHT)
+        self.Bx, self.By, _ = get_value_tracker_of_point(6*RIGHT)
+        self.line_C_start_x, self.line_C_start_y, _ = get_value_tracker_of_point(4*RIGHT + 3.25*UP)
+        self.line_C_end_x, self.line_C_end_y, _ = get_value_tracker_of_point(2*RIGHT + 2.75*UP)
         self.line_AD_direction = ValueTracker(4*PI/5)
 
-        """ Preparation """
-        givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
-        self.add(*givens, *given_intermediaries)
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=True)
+        title, description = self.initialize_introduction()
+        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
 
-        A, B, label_A, label_B, line_AB, line_C, label_C = givens
-        D, label_D, line_AD, line_AD_marker, line_AE_marker, line_C_marker, circle_A = solution_intermediaries
-        E, label_E, line_AE = solution
+        """ Construction Variables """
+        A, B, label_A, label_B, line_AB, line_C, label_C = self.givens
+        D, label_D, line_AD, line_AD_marker, line_AE_marker, line_C_marker, circle_A = self.solution_intermediaries
+        E, label_E, line_AE = self.solution
 
-        """ Introduction """
-        title, description = self.initialize_introduction(self.title, self.description)
-        
-        line_C_tmp = line_C.copy()
+        """ Animate Introduction """
+        self.add(*self.givens, *self.given_intermediaries)
+        self.wait()
+
         line_AE_tmp = line_AE.copy().rotate(PI)
         tmp = [mob.copy() for mob in [E, label_E, line_AE_marker, line_C_marker]]
-        self.play(
-            Transform(line_C_tmp, line_AE_tmp),
-            Animate(title, description, *tmp),
-            run_time=self.default_run_time
+        self.custom_play(
+            ReplacementTransform(line_C.copy(), line_AE_tmp),
+            *Animate(title, description, *tmp)
+        )
+        self.wait(3)
+        self.custom_play(*Unanimate(title, description, line_AE_tmp, *tmp))
+        self.wait()
+
+        """ Animate Proof Line Numbers """
+        self.animate_proof_line_numbers(proof_line_numbers)
+        self.wait()
+
+        """ Animation Construction """
+        # |C copied to point A in random direction
+        # |C ~= |AD
+        self.custom_play(
+            ReplacementTransform(line_C.copy(), line_AD),
+            first_footnote_animation
+        )
+        self.custom_play(*Animate(D, label_D))
+        self.custom_play(*Animate(line_C_marker, line_AD_marker))
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[0],
+            source_mobjects=[
+                A, D,
+                label_A, label_D,
+                line_AD, line_C, 
+                line_AD_marker, line_C_marker,
+            ]
         )
         self.wait(2)
-        self.custom_unplay(title, description, line_C_tmp, line_AE_tmp, *tmp)
-        self.wait()
 
-        """ Proof Initialization """
-        proof_line_numbers, proof_lines = self.initialize_proof()
-        self.play(Write(proof_line_numbers))
+        # The angle of |AD is pseudo-random
+        self.custom_play(next_footnote_animations[0])
         self.wait()
+        self.custom_play(
+            self.line_AD_direction.animate.set_value(4*PI/5 + 2*PI),
+            run_time=2
+        )
 
-        """ Animation """
-        
-        # line_C copied to point D in random direction
-        line_C_tmp = line_C.copy()
-        self.play(Transform(line_C_tmp, line_AD))
-        self.remove(line_C_tmp)
-        self.add(line_AD)
-        self.custom_play(D, label_D)
-        self.wait()
-        line_AD_direction_text = MathTex(r"\text{The direction of }", r"\overline{AD}", r"\text{ is determined} \\ \text{by the procedure in Prop. 1.2}")
-        line_AD_direction_text.scale(0.7).move_to(self.RIGHT_CENTER).shift(2*DOWN)
-        self.custom_play(line_AD_direction_text)
         self.wait(2)
-        self.custom_unplay(line_AD_direction_text)
-        self.wait()
-        self.emphasize(A, D, label_A, label_C, label_D, line_C, line_AD)
-        self.wait()
-        self.custom_play(line_C_marker, line_AD_marker)
-        self.wait()
-        # self.play(Write(proof_lines[0]))
-        self.play_proof_line(proof_lines[0])
-        self.wait()
-        self.undo_emphasize()
 
-        self.wait()
+        # Construct ()A
+        self.custom_play(
+            Animate(circle_A),
+            next_footnote_animations[1]
+        )
 
-        self.custom_play(circle_A)
-        self.wait()
-        self.custom_play(E, label_E)
-        self.custom_play(line_AE)
-        self.wait()
-        self.emphasize(A, D, E, label_A, label_D, label_E, line_AD, line_AE, line_AD_marker, circle_A)
-        self.wait()
-        self.custom_play(line_AE_marker)
-        self.wait()
-        # self.play(Write(proof_lines[1]))
-        self.play_proof_line(proof_lines[1])
-        self.wait()
-        self.undo_emphasize()
+        self.wait(2)
 
-        self.wait()
+        # |AD ~= |AE
+        self.custom_play(*Animate(E, label_E))
+        self.custom_play(Animate(line_AE))
+        self.wait(2)
+        self.custom_play(
+            Animate(line_AE_marker),
+            next_footnote_animations[2]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[1],
+            source_mobjects=[A, D, E, label_A, label_D, label_E, line_AD, line_AE, line_AD_marker, circle_A]
+        )
 
-        self.emphasize(A, E, label_A, label_C, label_E, line_AE, line_C, line_AE_marker, line_C_marker)
-        self.wait()
-        # self.play(Write(proof_lines[2]))
-        self.play_proof_line(proof_lines[2])
-        self.wait()
-        self.undo_emphasize()
+        self.wait(2)
+
+        # Thus, |C ~= |AE
+        self.custom_play(next_footnote_animations[3])
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[2],
+            source_mobjects=[A, E, label_A, label_C, label_E, line_AE, line_C, line_AE_marker, line_C_marker]
+        )
 
         self.wait()
