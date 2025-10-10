@@ -27,13 +27,20 @@ class GreekConstructionScenes(Scene):
 
     TITLE = "title"
     PARAGRAPH = "paragraph"
+    TEXT_PARAGRAPH = "Text paragraph"
+    MATH_TEX_PARAGRAPH = "MathTex paragraph"
     FOOTNOTE = "footnote"
     PROOF = "proof"
     QED = "QED"
+    STATEMENT = "statement"
+    JUSTIFICATION = "justification"
+    LINE_NUMBER = "line number"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setup()
+
+        self.add_and_remove_only = False
 
         self.LEFT_CENTER = LEFT * (config.frame_width / 4)
         self.RIGHT_CENTER = RIGHT * (config.frame_width / 4)
@@ -48,60 +55,63 @@ class GreekConstructionScenes(Scene):
             self.GIVEN: BLUE_D,
             self.SOLUTION: RED_E, 
             self.INTERMEDIARY: BLACK,
-            self.ASSUMPTION: ManimColor("#cc0000"),
-            self.CONTRADICTION: ManimColor("#cc0000"),
+            self.ASSUMPTION: BLUE_B,#ManimColor("#cc0000"),
+            self.CONTRADICTION: RED_A,#ManimColor("#cc0000"),
             self.DEFAULT: self.camera.background_color,
         }
 
         self.z_index_map = {
             self.GIVEN: 0,
-            self.SOLUTION: 10, 
             self.INTERMEDIARY: 0,
             self.ASSUMPTION: 0,
             self.CONTRADICTION: 0,
             self.DEFAULT: 0,
+            self.SOLUTION: 10,
             
-            self.LHS: 1000,
-            self.RHS: 0,
-
+            self.ANGLE: -200,
+            self.LINE: 0,
+            self.CIRCLE: 0,
             self.LABEL: 200,
             self.DOT: 200,
-            self.LINE: 0,
-            self.ANGLE: -2,
-            self.CIRCLE: 0,
             
-            self.PROOF: 1100,
+            self.RHS: 0,
+            self.LHS: 1000,
+
             self.TITLE: 1100,
             self.PARAGRAPH: 1100,
             self.FOOTNOTE: 1100,
+
+            self.PROOF: 1100,
+            self.STATEMENT: 1100,
+            self.JUSTIFICATION: 1100,
+            self.LINE_NUMBER: 1100,
+
             self.QED: 1100,
         }
 
         self.scale_map = {
             self.LABEL: 0.5,
+
             self.TITLE: 0.8,
-            self.PARAGRAPH: 0.5, 
+            self.TEXT_PARAGRAPH: 0.5,
+            self.MATH_TEX_PARAGRAPH: 0.75,
+            self.FOOTNOTE: 0.75,
+            
+            self.PROOF: 1,
+            self.STATEMENT: 0.75,
+            self.JUSTIFICATION: 0.5,
+            self.LINE_NUMBER: 0.55,
+
             self.QED: 1.2,
         }
-
-        # self.left_bg_z_index = 400
-        # self.given_z_index = 0
-        # self.solution_z_index = 10
-        # self.proof_z_index = 500
-
-        # self.line_z_index = 0
-        # self.circle_z_index = 0
-        # self.dot_z_index = 200
-        # self.angle_z_index = -2
-
-        # self.DOT_LABEL_SCALE = 0.5
-        # self.TITLE_SCALE = 0.8
-        # self.PARAGRAPH_SCALE = 0.5
     
     def setup(self):
         # Set the background color to a light beige
         theme = "Monokai Pro Light" # select a theme from https://iterm2colorschemes.com
         apply_theme(manim_scene=self, theme_name=theme, light_theme=True) # use the theme
+
+    def render_without_animations(self):
+        self.add_and_remove_only = True
 
     """ Abstract Methods to be Implemented """
     def write_givens(self):
@@ -122,12 +132,23 @@ class GreekConstructionScenes(Scene):
         return self.write_solution(*givens)
     def get_proof_spec(self):
         # Normalize proof spec so it's  -->  [(statement, justification, color), ...]
-        return [(t[0], t[1], (t[2] if len(t) > 2 else self.DEFAULT)) for t in self.write_proof_spec()]
+        default_color = self.color_map[self.DEFAULT]
+        return [
+            (
+                (t[0] if isinstance(t[0], (list, tuple)) else [t[0]]), 
+                (t[1] if isinstance(t[1], (list, tuple)) else [t[1]]), 
+                (self.color_map.get(t[2], default_color) if len(t) > 2 else default_color)) 
+            for t in self.write_proof_spec()
+        ]
     def get_footnotes(self):
         return self.write_footnotes()
     def get_tex_to_color_map(self):
-        # replacing the labels with the actual colors
-        return {key: self.color_map[value] for key, value in self.write_tex_to_color_map().items()}
+        default_color = self.color_map[self.DEFAULT]
+        return {
+            parse_shorthand(key)[0]:                            # replacing the shorthand keys with the actual latex
+            self.color_map.get(value, default_color)            # replacing the value labels with the actual colors
+            for key, value in self.write_tex_to_color_map().items()
+        }
 
     """ Construction Mobjects """
     def format_givens(self, *mobjects):
@@ -224,45 +245,128 @@ class GreekConstructionScenes(Scene):
             self.add_updaters()
 
     def initialize_introduction(self):
-        title, description = self.get_explanation(self.description, title=self.title)
+        title, description = self.Text(self.description, title=self.title)
         return title, description
 
-    def initialize_proof(self, scale=1):
+    def initialize_proof(self, scale=None):
+        if scale is None:
+            scale = self.scale_map[self.PROOF]
+
         proof_spec = self.get_proof_spec()
         tex_to_color_map = self.get_tex_to_color_map()
 
-        default_color = self.color_map[self.DEFAULT]
-        proof_spec = [
-            (
-                statement, 
-                justification, 
-                self.color_map.get(line_type, default_color)
-            ) for statement, justification, line_type in proof_spec
-        ]
-        proof = format_and_prepare_proof(proof_spec, tex_to_color_map, scale=scale, z_index=self.z_index_map[self.PROOF])
-        proof.to_edge(LEFT)#.set_z_index(self.z_index_map[self.PROOF])
+        line_numbers = VGroup([
+            Text(f"{i+1}.")
+                .scale(self.scale_map[self.LINE_NUMBER])
+                .set_z_index(self.z_index_map[self.LINE_NUMBER]) 
+            for i in range(len(proof_spec))
+        ])
+        statements = VGroup([
+            MathTex(*parse_shorthand(line[0]))
+                .scale(self.scale_map[self.STATEMENT])
+                .set_color_by_tex_to_color_map(tex_to_color_map)
+                .set_z_index(self.z_index_map[self.STATEMENT])
+            for line in proof_spec
+        ])
+        justifications = VGroup([
+            Text(*line[1])
+                .scale(self.scale_map[self.JUSTIFICATION])
+                .set_z_index(self.z_index_map[self.JUSTIFICATION]) 
+            for line in proof_spec
+        ])
+        
+        line_numbers, statements, justifications = format_proof(line_numbers, statements, justifications)
 
-        proof_line_numbers = VGroup([line_number for line_number, _, _ in proof])
-        proof_lines = VGroup([VGroup(statement, justification) for _, statement, justification in proof])
+        # Add the indicators only after the formatting (so it doesn't affect the centering of line_numbers)
+        line_number_indicators =  VGroup([
+            Underline(line_number_mob, stroke_color=line[2]).set_z_index(line_number_mob.z_index) 
+            for line, line_number_mob in zip(proof_spec, line_numbers)
+        ])
+
+        # Group things in the way they will be animated
+        proof_line_numbers = VGroup(*[VGroup(line_number_mob, indocator_mob) for line_number_mob, indocator_mob in zip(line_numbers, line_number_indicators)])
+        proof_lines = VGroup(*[VGroup(statement, justification) for statement, justification in zip(statements, justifications)])
+        
+        # Left justify everything
+        proof = VGroup(proof_line_numbers, proof_lines)
+        proof.set_z_index(self.z_index_map[self.PROOF]).scale(scale)
+        proof.move_to(self.LEFT_CENTER).to_edge(LEFT)
 
         return proof_line_numbers, proof_lines
 
-    def initialize_footnotes(self, scale=0.6):
+    def initialize_footnotes(self, shift=ORIGIN):
         footnotes = self.get_footnotes()
         if len(footnotes) == 0:
-            return None, None, None, None
+            return [], []
+
+        formatted_footnotes = []
+        for footnote in footnotes:
+            formatted_footnote = self.MathTex(*footnote.split(r"\\"))
+            formatted_footnote.set_z_index(self.z_index_map[self.FOOTNOTE])#.scale(self.scale_map[self.FOOTNOTE])
+            formatted_footnotes.append(formatted_footnote)
+        
+        formatted_footnotes = VGroup(*formatted_footnotes).set_z_index(self.z_index_map[self.FOOTNOTE])#.scale(self.scale_map[self.FOOTNOTE])
+        formatted_footnotes.shift(shift)
+        
+        footnote_animations = [
+            Write(formatted_footnotes[0]),
+            *[ReplacementTransform(formatted_footnotes[i], formatted_footnotes[i+1]) for i in range(len(formatted_footnotes)-1)],
+            FadeOut(formatted_footnotes[-1])
+        ]
+        return formatted_footnotes, footnote_animations
+
+    """ Custom Text / MathTex """
+    def MathTex(self, *paragraphs, line_spacing=0.6, paragraph_spacing=2, scale=None, z_index=None):
+        if scale is None:
+            scale = self.scale_map[self.MATH_TEX_PARAGRAPH]
+        if z_index is None:
+            z_index = self.z_index_map[self.PARAGRAPH]
 
         tex_to_color_map = self.get_tex_to_color_map()
-        formatted_footnotes = format_and_parse_footnotes(footnotes, tex_to_color_map, scale=scale)
 
-        formatted_footnotes.to_edge(DOWN).shift(self.RIGHT_CENTER[0] * RIGHT)
-        for footnote in formatted_footnotes:
-            footnote.set_z_index(self.z_index_map[self.PROOF])
+        paragraph_mobjects = []
+        for paragraph in paragraphs:
+            paragraph = VGroup([
+                MathTex(*line)
+                    .set_color_by_tex_to_color_map(tex_to_color_map)
+                    .scale(scale)
+                    .set_z_index(z_index)
+                for line in parse_math_tex_paragraph(paragraph)
+            ])
+            paragraph.arrange(line_spacing*DOWN, aligned_edge=LEFT)
+            paragraph_mobjects.append(paragraph)
         
-        first_footnote_animation = Write(formatted_footnotes[0])
-        next_footnote_animations = [ReplacementTransform(formatted_footnotes[i], formatted_footnotes[i+1]) for i in range(len(formatted_footnotes)-1)]
-        last_footnote_animation = FadeOut(formatted_footnotes[-1])
-        return formatted_footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation
+        paragraphs_vgroup = VGroup(*paragraph_mobjects).set_z_index(z_index).scale(scale)
+        paragraphs_vgroup.arrange(paragraph_spacing*DOWN, aligned_edge=LEFT)
+        paragraphs_vgroup.to_edge(DOWN).shift(self.RIGHT_CENTER[0] * RIGHT)
+        return paragraphs_vgroup
+
+    def Text(self, *paragraphs, line_spacing=0.5, title=None, z_index=None):
+        if z_index is None:
+            z_index = self.z_index_map[self.PARAGRAPH]
+
+        if title is not None:
+            title = Text(title).scale(self.scale_map[self.TITLE]).set_z_index(z_index)
+            title.move_to(self.LEFT_CENTER)
+        
+        paragraphs = [
+            "\n".join([line.strip() for line in paragraph.split("\n")])
+            for paragraph in paragraphs
+        ]
+        paragraphs = VGroup([
+            Text(paragraph, line_spacing=line_spacing).scale(self.scale_map[self.TEXT_PARAGRAPH]).set_z_index(z_index)
+            for paragraph in paragraphs
+        ])
+        paragraphs = paragraphs.arrange(DOWN, aligned_edge=LEFT)
+        
+        if title is None:
+            paragraphs.move_to(self.LEFT_CENTER)
+            return paragraphs
+        else:
+            paragraphs.next_to(title, 2*DOWN)
+            explanation = VGroup(title, *paragraphs)
+            explanation.move_to(self.LEFT_CENTER)
+            return explanation
 
     """ Emphasize and De-emphasize Methods """
     def emphasize(self, *mobjects_to_emphasize, play=False):
@@ -279,19 +383,19 @@ class GreekConstructionScenes(Scene):
                 self.mobjects_currently_deemphasized.append(mobject)
                 animations.append(self._custom_set_opacity(mobject, 0.2))
 
-        if play:
+        if play and not self.add_and_remove_only:
             self.play(*animations)
         return animations
     
     def clear_emphasize(self, play=False, add=False):
-        if add:
+        if add or self.add_and_remove_only:
             for mobject in self.mobjects_currently_deemphasized:
                 self._custom_set_opacity(mobject, 1, animate=False)
             self.mobjects_currently_deemphasized = []
         
         animations = [self._custom_set_opacity(mobject, 1, animate=True) for mobject in self.mobjects_currently_deemphasized]
         self.mobjects_currently_deemphasized = []
-        if play:
+        if play and not self.add_and_remove_only:
             self.play(*animations)
         return animations
 
@@ -358,12 +462,15 @@ class GreekConstructionScenes(Scene):
                 raise TypeError(f"Expected Animation, got {type(anim)}")
             
             if isinstance(anim, (Uncreate, Unwrite, FadeOut, ShrinkToCenter)):
+                mobjects_to_remove.append(anim.mobject)
                 continue
 
             if isinstance(anim, ReplacementTransform):
+                # mobjects_to_remove.append(anim.mobject)
+                # mobjects_to_add.append(anim.target_mobject)
                 continue
 
-            if isinstance(anim, (Create, Write, FadeIn, GrowFromCenter)):
+            if isinstance(anim, (Create, Write, FadeIn, GrowFromCenter, Rotate)):
                 mobjects_to_add.append(anim.mobject)
                 anim.mobject = anim.mobject.copy().clear_updaters()
                 mobjects_to_remove.append(anim.mobject)
@@ -372,7 +479,8 @@ class GreekConstructionScenes(Scene):
             if isinstance(anim, Transform):
                 raise NotImplementedError("Have not implemented Transform, ReplacementTransform is usually easier to use.")
 
-        self.play(*animations, run_time=run_time, **kwargs)
+        if not self.add_and_remove_only:
+            self.play(*animations, run_time=run_time, **kwargs)
         self.remove(*mobjects_to_remove)
         self.add(*mobjects_to_add)
 
@@ -381,48 +489,32 @@ class GreekConstructionScenes(Scene):
 
     def animate_proof_line(self, *proof_lines, source_mobjects=None, **kwargs):
         if source_mobjects is None:
+            # If a mobject is not on t
             source_mobjects = [
-                mobject for mobject in self.mobjects 
-                if all([mobject is not deemphasized_mobject for deemphasized_mobject in self.mobjects_currently_deemphasized]) \
-                and any([mobject is mob for mob in self.get_all_construction_mobjects()])
+                mobject for mobject in self.get_all_construction_mobjects()
+                # mobject is on the screen
+                if any([mobject is mob for mob in self.mobjects])
+                # and the mobject is not deemphasized
+                and not any([mobject is deemphasized_mobject for deemphasized_mobject in self.mobjects_currently_deemphasized]) 
             ]
-        
-        source_mobjects = [
-            mob for mob in source_mobjects \
-                if any([isinstance(mob, mob_type) for mob_type in [Text, MathTex, Dot, Line, Circle, Angle, RightAngle]])
-        ]
-        source_mobjects = VGroup(source_mobjects).copy()
-        for mob_copy in source_mobjects:
-            mob_copy.set_z_index(self.z_index_map[self.PROOF])
 
-        proof_line_vgroup = VGroup(proof_lines)
-        self.play(Transform(source_mobjects, proof_line_vgroup, replace_mobject_with_target_in_scene=True), **kwargs)
+        proof_line_vgroup = VGroup(proof_lines).copy().set_z_index(self.z_index_map[self.PROOF])
+        if len(source_mobjects) == 0:
+            proof_animation = Write(proof_line_vgroup)
+        else:
+
+            source_mobjects = VGroup([
+                mob.copy().set_z_index(mob.z_index + self.z_index_map[self.PROOF]) 
+                for mob in source_mobjects
+            ]).set_z_index(self.z_index_map[self.PROOF])
+            
+            # proof_animation = Transform(source_mobjects, proof_line_vgroup, replace_mobject_with_target_in_scene=True)
+            proof_animation = ReplacementTransform(source_mobjects, proof_line_vgroup)
+        
+        if not self.add_and_remove_only:
+            self.custom_play(proof_animation, **kwargs)
         self.remove(proof_line_vgroup)
         self.add(*proof_lines)
-
-    def get_explanation(self, *paragraphs, title=None):
-        if title is not None:
-            title = Text(title).scale(self.scale_map[self.TITLE]).set_z_index(self.z_index_map[self.PROOF])
-            title.move_to(self.LEFT_CENTER)
-        
-        paragraphs = [
-            "\n".join([line.strip() for line in paragraph.split("\n")])
-            for paragraph in paragraphs
-        ]
-        paragraphs = VGroup([
-            Text(paragraph).scale(self.scale_map[self.PARAGRAPH]).set_z_index(self.z_index_map[self.PROOF])
-            for paragraph in paragraphs
-        ])
-        paragraphs = paragraphs.arrange(DOWN, aligned_edge=LEFT)
-        
-        if title is None:
-            paragraphs.move_to(self.LEFT_CENTER)
-            return paragraphs
-        else:
-            paragraphs.next_to(title, 2*DOWN)
-            explanation = VGroup(title, *paragraphs)
-            explanation.move_to(self.LEFT_CENTER)
-            return explanation
 
     def write_QED(self, position=None, position_func=None):
         QED_text = MathTex(r"\text{Q.E.D.}").scale(self.scale_map[self.QED]).set_z_index(self.z_index_map[self.QED])
@@ -434,13 +526,17 @@ class GreekConstructionScenes(Scene):
             QED.move_to(position)
         elif position_func is not None:
             QED = position_func(QED)
-        self.play(FadeIn(QED_bg), Write(QED_text))
+        
+        if self.add_and_remove_only:
+            self.add(QED_bg, QED_text)
+        else:
+            self.play(FadeIn(QED_bg), Write(QED_text))
 
-    """ Custom ReplaceTransform """
-    def ReplaceTransformN2M(self, source_mobjects, target_mobjects, copy_source=False):
-        if not isinstance(source_mobjects, list) and not isinstance(source_mobjects, tuple):
+    """ Custom ReplacementTransform """
+    def ReplacementTransformN2M(self, source_mobjects, target_mobjects, copy_source=False):
+        if not isinstance(source_mobjects, (list, tuple)):
             source_mobjects = [source_mobjects]
-        if not isinstance(target_mobjects, list) and not isinstance(target_mobjects, tuple):
+        if not isinstance(target_mobjects, (list, tuple)):
             target_mobjects = [target_mobjects]
         if copy_source:
             source_mobjects = [mob.copy() for mob in source_mobjects]
@@ -456,7 +552,7 @@ class GreekConstructionScenes(Scene):
         self.replace_transform_mobjects_to_add.extend(target_mobjects)
         return animations
 
-    def ReplaceTransformN2M_cleanup(self):
+    def ReplacementTransformN2M_cleanup(self):
         self.remove(*self.replace_transform_mobjects_to_remove)
         self.add(*self.replace_transform_mobjects_to_add)
         self.replace_transform_mobjects_to_remove = []

@@ -136,16 +136,16 @@ class Book1Prop4(GreekConstructionScenes):
     def write_proof_spec(self):
         return [
             ("|AB ~= |DE",       "[Given]",         self.GIVEN),
-            ("|AC ~= |DF",       "[Given]",         self.GIVEN),
             ("<A ~= <D",         "[Given]",         self.GIVEN),
+            ("|AC ~= |DF",       "[Given]",         self.GIVEN),
             
             ("A c= D",          "[Superposition]"),
-            ("|AB c= |DE",      "[Superposition]"),
-            ("<A c= <D",        "[Superposition]"),
-            ("|AC c= |DF",      "[Superposition]"),
+            ("|AB c= |DE",      "[1. + Superposition]"),
+            ("<A c= <D",        "[2. + 4. + 5.]"),
+            ("|AC c= |DF",      "[3. + 4. + 5. + 6.]"),
 
-            ("B c= E",          "[Superposition]"),
-            ("C c= F",          "[Superposition]"),
+            ("B c= E",          "[5. + Def. 3]"),
+            ("C c= F",          "[7. + Def. 3]"),
 
             ("|BC c= |EF",      "[Post. 1]"),
 
@@ -159,8 +159,43 @@ class Book1Prop4(GreekConstructionScenes):
     def write_footnotes(self):
         return [
             r"""
-            \text{testing test}
-            \text{testing test}
+            \text{Using superposition, we ``apply" } ^ABC \text{ to } ^DEF
+            """,
+            r"""
+            \text{Let point } {A} \text{ coincide with point } {D}
+            """,
+            r"""
+            \text{Since } |AB ~= |DE \text{,}
+            \text{let line } |AB \text{ coincide with line } |DE
+            """,
+            r"""
+            \text{Since } <A ~= <D \text{ and } |AC ~= |DF \text{,} 
+            \text{they must also coincide with eachother}
+            \text{(the most hand-wavy part of the argument)}
+            """,
+            r"""
+            \text{Since } |AB c= |DE
+            \text{ their endpoints must coincide}
+            """,
+            r"""
+            \text{Likewise, since } |AC c= |DF
+            \text{ their endpoints must coincide}
+            """,
+            r"""
+            \text{Thus, line } |BC \text{ must coincide with line } |EF
+            """,
+            r"""
+            \text{If not, then we have created a two-sided}
+            \text{polygon which is impossible.}
+            """,
+            r"""
+            \text{Thus all points and lines in } ^ABC 
+            \text{ coincide with their counterparts in } ^DEF
+            \text{so these triangles must be congruent}
+            """,
+            r"""
+            \text{Thus, all other lines and angles must coincide}
+            \text{and therefore must be congruent}
             """
         ]
     
@@ -180,8 +215,8 @@ class Book1Prop4(GreekConstructionScenes):
         self.initialize_canvas()
         self.initialize_construction(add_updaters=False)
         title, description = self.initialize_introduction()
-        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
-        proof_line_numbers, proof_lines = self.initialize_proof()
+        footnotes, footnote_animations = self.initialize_footnotes(shift=DOWN * MED_SMALL_BUFF)
+        proof_line_numbers, proof_lines = self.initialize_proof(scale=0.85)
 
         """ Construction Variables """
         (
@@ -220,34 +255,62 @@ class Book1Prop4(GreekConstructionScenes):
         self.custom_play(givens_copy.animate.shift(-center_shift))
         self.add(*self.givens, *self.given_intermediaries)
         self.remove(givens_copy)
+        self.wait(2)
+
+        """ Superposition Explanation """
+        superposition_explanation = self.MathTex(
+        r"""
+        \textbf{Superposition} \text{ is a method where two figures}
+        \text{are imagined to be placed on top of each other.}
+        \text{This is often written as ``applying" one figure}
+        \text{to another.}
+        """,
+        r"""
+        \text{By modern standards, superposition constitutes}
+        \text{a new axiom. It's essentially equivalent to}
+        \text{assuming the Euclidean plane allows for rigid}
+        \text{motion. Most modern treatments (such as}
+        \text{Hilbert's ``Foundations of Geometry") instead}
+        \text{choose to assume SAS as the axiom.}
+        """,
+        r"""
+        \text{While the rigorous axiomatization of Euclidean
+        \text{geometry is an interesting topic, the goal}
+        \text{here is simply to reproduce Euclid's original}
+        \text{reasoning as presented in ``Euclid's Elements}
+        \text{of Geometry".}
+        """)
+        superposition_explanation.move_to(self.LEFT_CENTER)
+        triangle_ABC = VGroup([
+            A, B, C,
+            label_A, label_B, label_C,
+            line_AB, line_BC, line_CA
+        ])
+        triangle_DEF = VGroup([
+            D, E, F,
+            label_D, label_E, label_F,
+            line_DE, line_EF, line_FD
+        ])
+        superposition_triangle = VGroup([
+            A_D, B_E, C_F,
+            label_A_D, label_B_E, label_C_F,
+            line_AB_DE, line_BC_EF, line_CA_FD
+        ])
+        self.custom_play(
+            *self.ReplacementTransformN2M((triangle_ABC, triangle_DEF), superposition_triangle, copy_source=True),
+            *Animate(superposition_explanation), 
+        run_time=1.5)
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(4)
+        self.custom_play(
+            FadeOut(superposition_triangle),
+            *Unanimate(superposition_explanation), 
+        run_time=1.5)
         self.wait()
-
-        return
-        """ Preamble """
-        superposition_explanation_text_1 = MathTex(r"""
-            \begin{aligned}
-                &\textbf{Superposition} \text{ is a method where two figures} \\
-                &\text{are imagined to be placed on top of each other}
-            \end{aligned}
-        """).scale(0.6).move_to(self.LEFT_CENTER).shift(UP).set_z_index(self.proof_z_index)
-
-        superposition_explanation_text_2 = MathTex(r"""
-            \begin{aligned}
-                &\text{Since } \overline{AB} \cong \overline{DE} \text{ and } \overline{AC} \cong \overline{DF}\\
-                &\text{the procedure in Prop. 3 justifies this method,}\\
-                &\text{i.e. } \overline{AB} \text{ can be placed on } \overline{DE} \text{ via construction}
-            \end{aligned}
-        """).scale(0.6).next_to(superposition_explanation_text_1, 3*DOWN).set_z_index(self.proof_z_index)
-
-        _ = VGroup(superposition_explanation_text_1, superposition_explanation_text_2).move_to(self.LEFT_CENTER)
-        self.custom_play(*Animate(superposition_explanation_text_1, superposition_explanation_text_2))
-        self.wait(3)
-
-        self.custom_play(*Unanimate(superposition_explanation_text_1, superposition_explanation_text_2))
-        self.wait()
-
-        """ Proof Initialization """
+        
+        """ Animate Proof Line Numbers """
         self.animate_proof_line_numbers(proof_line_numbers)
+        self.wait()
         self.animate_proof_line(
             *proof_lines[0:3],
             source_mobjects=[
@@ -260,14 +323,18 @@ class Book1Prop4(GreekConstructionScenes):
         )
         self.wait()
 
-        """ Animation """
-        # Set A on top of D
+        """ Animation Construction """
+        self.custom_play(footnote_animations[0])
+        self.wait(2)
+
+        # Let A c= D
         self.custom_play(
-            *self.ReplaceTransformN2M((A, D), A_D, copy_source=True),
-            *self.ReplaceTransformN2M((label_A, label_D), label_A_D, copy_source=True)
+            *self.ReplacementTransformN2M((A, D), A_D, copy_source=True),
+            *self.ReplacementTransformN2M((label_A, label_D), label_A_D, copy_source=True),
+            footnote_animations[1]
         )
-        self.ReplaceTransformN2M_cleanup()
-        self.wait()
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
         self.animate_proof_line(
             proof_lines[3],
             source_mobjects=[
@@ -276,19 +343,24 @@ class Book1Prop4(GreekConstructionScenes):
             ]
         )
 
-        # Givens coincide
+        self.wait(2)
+
+        # Let |AB c= |DE
         self.custom_play(
-            *self.ReplaceTransformN2M((line_AB, line_DE), line_AB_DE, copy_source=True),
-            *self.ReplaceTransformN2M((line_CA, line_FD), line_CA_FD, copy_source=True),
-
-            *self.ReplaceTransformN2M((line_AB_marker, line_DE_marker), line_AB_DE_marker, copy_source=True),
-            *self.ReplaceTransformN2M((line_CA_marker, line_FD_marker), line_CA_FD_marker, copy_source=True),
-            *self.ReplaceTransformN2M((angle_A_marker, angle_D_marker), angle_A_D_marker, copy_source=True),
-
-            run_time=self.default_run_time
+            *self.ReplacementTransformN2M((line_AB, line_DE), line_AB_DE, copy_source=True),
+            *self.ReplacementTransformN2M((line_AB_marker, line_DE_marker), line_AB_DE_marker, copy_source=True),
+            footnote_animations[2],
         )
-        self.ReplaceTransformN2M_cleanup()
-        self.wait()
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
+        self.custom_play(
+            *self.ReplacementTransformN2M((line_CA, line_FD), line_CA_FD, copy_source=True),
+            *self.ReplacementTransformN2M((line_CA_marker, line_FD_marker), line_CA_FD_marker, copy_source=True),
+            *self.ReplacementTransformN2M((angle_A_marker, angle_D_marker), angle_A_D_marker, copy_source=True),
+            footnote_animations[3],
+        )
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
         self.animate_proof_line(
             *proof_lines[4:7],
             source_mobjects=[
@@ -297,17 +369,26 @@ class Book1Prop4(GreekConstructionScenes):
                 angle_A_marker, angle_D_marker, angle_A_D_marker
             ]
         )
-        self.wait()
 
-        # Points B and E coincide
+        self.wait(2)
+
+        # Thus, B c= E
         self.custom_play(
-            *self.ReplaceTransformN2M((B, E), B_E, copy_source=True),
-            *self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
-
-            *self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True),
-            *self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+            *self.ReplacementTransformN2M((B, E), B_E, copy_source=True),
+            *self.ReplacementTransformN2M((label_B, label_E), label_B_E, copy_source=True),
+            footnote_animations[4],
         )
-        self.ReplaceTransformN2M_cleanup()
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
+
+        # Thus, C c= D
+        self.custom_play(
+            *self.ReplacementTransformN2M((C, F), C_F, copy_source=True),
+            *self.ReplacementTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+            footnote_animations[5],
+        )
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
         self.animate_proof_line(
             *proof_lines[7:9],
             source_mobjects=[
@@ -315,13 +396,17 @@ class Book1Prop4(GreekConstructionScenes):
                 label_B, label_C, label_E, label_F, label_B_E, label_C_F,
             ]
         )
+        
+        self.wait(2)
 
         # Proving that line_BC must coincide with line_EF
         self.emphasize(
             B, C, E, F, B_E, C_F,
             label_B, label_C, label_E, label_F, label_B_E, label_C_F,
-            line_BC, line_EF,
-        )
+            line_BC, line_EF, 
+        play=True)
+        self.wait(2)
+
         line_BC_EF_arc = ArcBetweenPoints(B_E.get_center(), C_F.get_center()).set_z_index(line_BC_EF.z_index)
         shaded_region = VMobject(color=RED, fill_opacity=0.5, stroke_width=0)
         shaded_region.set_points_as_corners([
@@ -331,45 +416,65 @@ class Book1Prop4(GreekConstructionScenes):
         ])
         shaded_region.close_path()
         self.custom_play(
-            *self.ReplaceTransformN2M((B, E), B_E, copy_source=True), 
-            *self.ReplaceTransformN2M((C, F), C_F, copy_source=True),
-            *self.ReplaceTransformN2M((label_B, label_E), label_B_E, copy_source=True), 
-            *self.ReplaceTransformN2M((label_C, label_F), label_C_F, copy_source=True),
-            *self.ReplaceTransformN2M(line_BC, line_BC_EF, copy_source=True),
-            *self.ReplaceTransformN2M(line_BC, line_BC_EF_arc, copy_source=True),
-            FadeIn(shaded_region)
+            # *self.ReplacementTransformN2M((B, E), B_E, copy_source=True), 
+            # *self.ReplacementTransformN2M((C, F), C_F, copy_source=True),
+            # *self.ReplacementTransformN2M((label_B, label_E), label_B_E, copy_source=True), 
+            # *self.ReplacementTransformN2M((label_C, label_F), label_C_F, copy_source=True),
+            *self.ReplacementTransformN2M((line_BC, line_EF), line_BC_EF, copy_source=True),
+            footnote_animations[6],
         )
-        self.ReplaceTransformN2M_cleanup()
-        self.wait()
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2.5)
         
         self.custom_play(
-            *self.ReplaceTransformN2M((line_BC_EF_arc, shaded_region), line_BC_EF),
+            *self.ReplacementTransformN2M(line_BC_EF, line_BC_EF_arc, copy_source=True),
+            FadeIn(shaded_region),
+            footnote_animations[7],
         )
-        self.ReplaceTransformN2M_cleanup()
+        self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
+
+        self.custom_play(
+            *self.ReplacementTransformN2M((line_BC_EF_arc, shaded_region), line_BC_EF),
+        )
+        self.ReplacementTransformN2M_cleanup()
         self.wait()
         self.animate_proof_line(proof_lines[9])
-        self.clear_emphasize()
+        self.wait(2)
+        self.clear_emphasize(play=True)
+        self.wait()
         
         # Therefore Triangle ABC is congruent to Triangle DEF
-        self.emphasize(
-            A, B, C, D, E, F, A_D, B_E, C_F,
-            label_A, label_B, label_C, label_D, label_E, label_F, label_A_D, label_B_E, label_C_F,
-            line_AB, line_BC, line_CA, line_DE, line_EF, line_FD, line_AB_DE, line_BC_EF, line_CA_FD,
-        )
+        self.custom_play(footnote_animations[8])
+        self.wait(2)
         self.animate_proof_line(proof_lines[10])
         
-        self.wait()
+        self.wait(2)
 
         # And the rest of the triangle parts are congruent
         self.custom_play(
-            *Animate(
-                line_BC_marker, line_EF_marker, line_BC_EF_marker,
-                angle_B_marker, angle_C_marker, angle_E_marker, 
-                angle_F_marker, angle_B_E_marker, angle_C_F_marker
-            )
+            *Animate(angle_B_E_marker, line_BC_EF_marker, angle_C_F_marker),
+            footnote_animations[9],
         )
+        self.wait(2)
+        self.custom_play(
+            ReplacementTransform(angle_B_E_marker.copy(), angle_B_marker),
+            ReplacementTransform(angle_B_E_marker.copy(), angle_E_marker),
+            ReplacementTransform(line_BC_EF_marker.copy(), line_BC_marker),
+            ReplacementTransform(line_BC_EF_marker.copy(), line_EF_marker),
+            ReplacementTransform(angle_C_F_marker.copy(), angle_C_marker),
+            ReplacementTransform(angle_C_F_marker.copy(), angle_F_marker),
+            # IDK why this doesn't work
+            # *self.ReplacementTransformN2M(angle_B_E_marker, (angle_B_marker, angle_E_marker), copy_source=True),
+            # *self.ReplacementTransformN2M(line_BC_EF_marker, (line_BC_marker, line_EF_marker), copy_source=True),
+            # *self.ReplacementTransformN2M(angle_C_F_marker, (angle_C_marker, angle_F_marker), copy_source=True),
+        )
+        # self.ReplacementTransformN2M_cleanup()
+        self.wait(2)
         self.animate_proof_line(*proof_lines[11:14])
-        self.clear_emphasize()
+        self.wait(2)
+        self.custom_play(footnote_animations[-1])
+        self.wait(2)
 
-        self.wait()
         self.write_QED()
+        self.wait()

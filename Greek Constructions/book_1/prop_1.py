@@ -118,7 +118,7 @@ class Book1Prop1(GreekConstructionScenes):
         self.initialize_canvas()
         self.initialize_construction(add_updaters=False)
         title, description = self.initialize_introduction()
-        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        footnotes, footnote_animations = self.initialize_footnotes()
         proof_line_numbers, proof_lines = self.initialize_proof()
         
         """ Construction Variables """
@@ -144,12 +144,12 @@ class Book1Prop1(GreekConstructionScenes):
         # Circle A and Circle B
         self.custom_play(
             Animate(circle_A), 
-            first_footnote_animation
+            footnote_animations[0]
         )
         self.wait(2)
         self.custom_play(
             Animate(circle_B),
-            next_footnote_animations[0],
+            footnote_animations[1],
         )
         
         self.wait(2)
@@ -157,17 +157,17 @@ class Book1Prop1(GreekConstructionScenes):
         # Line AC and BC
         self.custom_play(
             *Animate(C, label_C),
-            next_footnote_animations[1],
+            footnote_animations[2],
         )
         self.wait(3)
         self.custom_play(
             Animate(line_BC),
-            next_footnote_animations[2],
+            footnote_animations[3],
         )
         self.wait(2)
         self.custom_play(
             Animate(line_CA),
-            next_footnote_animations[3],
+            footnote_animations[4],
         )
         
         self.wait(2)
@@ -181,7 +181,7 @@ class Book1Prop1(GreekConstructionScenes):
         )
         self.custom_play(
             *emphasize_animations, 
-            next_footnote_animations[4],
+            footnote_animations[5],
         )
         self.wait()
         self.custom_play(*Animate(line_AB_marker, line_BC_marker))
@@ -200,7 +200,7 @@ class Book1Prop1(GreekConstructionScenes):
         )
         self.custom_play(
             *emphasize_animations,
-            next_footnote_animations[5],
+            footnote_animations[6],
         )
         self.wait()
         self.custom_play(Animate(line_CA_marker))
@@ -218,7 +218,7 @@ class Book1Prop1(GreekConstructionScenes):
         )
         self.custom_play(
             *emphasize_animations,
-            next_footnote_animations[6],
+            footnote_animations[7],
         )
         self.wait(2)
         self.animate_proof_line(proof_lines[2])
@@ -234,7 +234,7 @@ class Book1Prop1(GreekConstructionScenes):
         )
         self.custom_play(
             *emphasize_animations,
-            next_footnote_animations[7],
+            footnote_animations[8],
         )
         self.wait(2)
         self.animate_proof_line(proof_lines[3])
@@ -242,7 +242,7 @@ class Book1Prop1(GreekConstructionScenes):
         clear_emphasize_animations = self.clear_emphasize()
         self.custom_play(
             *clear_emphasize_animations,
-            last_footnote_animation
+            footnote_animations[-1]
         )
 
         self.wait()

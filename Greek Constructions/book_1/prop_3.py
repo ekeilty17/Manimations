@@ -89,10 +89,10 @@ class Book1Prop3(GreekConstructionScenes):
         ]
     def write_tex_to_color_map(self):
         return {
-            "{A}": self.GIVEN,
-            "{B}": self.GIVEN,
-            "|C": self.GIVEN,
-            "|AE": self.SOLUTION,
+            "{A}":  self.GIVEN,
+            "{B}":  self.GIVEN,
+            "|C":   self.GIVEN,
+            "|AE":  self.SOLUTION,
         }
 
     def construct(self):
@@ -108,7 +108,7 @@ class Book1Prop3(GreekConstructionScenes):
         self.initialize_canvas()
         self.initialize_construction(add_updaters=True)
         title, description = self.initialize_introduction()
-        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        footnotes, footnote_animations = self.initialize_footnotes()
         proof_line_numbers, proof_lines = self.initialize_proof()
 
         """ Construction Variables """
@@ -139,7 +139,7 @@ class Book1Prop3(GreekConstructionScenes):
         # |C ~= |AD
         self.custom_play(
             ReplacementTransform(line_C.copy(), line_AD),
-            first_footnote_animation
+            footnote_animations[0]
         )
         self.custom_play(*Animate(D, label_D))
         self.custom_play(*Animate(line_C_marker, line_AD_marker))
@@ -156,19 +156,19 @@ class Book1Prop3(GreekConstructionScenes):
         self.wait(2)
 
         # The angle of |AD is pseudo-random
-        self.custom_play(next_footnote_animations[0])
+        self.custom_play(footnote_animations[1])
         self.wait()
         self.custom_play(
             self.line_AD_direction.animate.set_value(4*PI/5 + 2*PI),
             run_time=2
         )
 
-        self.wait(2)
+        self.wait(3)
 
         # Construct ()A
         self.custom_play(
             Animate(circle_A),
-            next_footnote_animations[1]
+            footnote_animations[2]
         )
 
         self.wait(2)
@@ -179,7 +179,7 @@ class Book1Prop3(GreekConstructionScenes):
         self.wait(2)
         self.custom_play(
             Animate(line_AE_marker),
-            next_footnote_animations[2]
+            footnote_animations[3]
         )
         self.wait(2)
         self.animate_proof_line(
@@ -190,11 +190,17 @@ class Book1Prop3(GreekConstructionScenes):
         self.wait(2)
 
         # Thus, |C ~= |AE
-        self.custom_play(next_footnote_animations[3])
+        self.custom_play(footnote_animations[4])
         self.wait(2)
         self.animate_proof_line(
             proof_lines[2],
             source_mobjects=[A, E, label_A, label_C, label_E, line_AE, line_C, line_AE_marker, line_C_marker]
         )
 
+        self.wait(2)
+        self.custom_play(footnote_animations[-1])
+        
+        self.wait()
+        
+        self.write_QED()
         self.wait()

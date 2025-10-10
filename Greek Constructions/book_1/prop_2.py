@@ -15,7 +15,7 @@ class Book1Prop2(GreekConstructionScenes):
         (not necessarily in the same direction)
     """
 
-    def get_givens(self):
+    def write_givens(self):
         
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, DL)
         B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DR)
@@ -27,7 +27,7 @@ class Book1Prop2(GreekConstructionScenes):
         intermediaries = ()
         return givens, intermediaries
 
-    def get_solution(self, *givens):
+    def write_solution(self, *givens):
         A, B, C, label_A, label_B, label_C, line_BC = givens
         
         # Base of equilateral triangle
@@ -58,7 +58,6 @@ class Book1Prop2(GreekConstructionScenes):
         circle_D = OrientedCircle(center=D.get_center(), start=G.get_center())
 
         _, line_AL = extend_line_by_length(line_DA, line_BG.get_length())
-        line_AL.set_color(self.solution_color)
         
         L, label_L = self.get_dot_and_label("L", line_AL.get_end(), DR)
         line_AL = Line(A.get_center(), L.get_center())
@@ -76,7 +75,7 @@ class Book1Prop2(GreekConstructionScenes):
 
         return intermediaries, solution
 
-    def get_proof_spec(self):
+    def write_proof_spec(self):
         return [    
             (("^ABD", r"\text{ is equilateral}"),   "[Prop. 1.1]"),
             ("|AB ~= |BD ~= |AD",                   "[Def. 20]"),
@@ -85,7 +84,7 @@ class Book1Prop2(GreekConstructionScenes):
             ("|AL ~= |BG",                          "[CN. 3]"),
             ("|AL ~= |BC",                          "[CN. 1]",      self.SOLUTION),
         ]
-    def get_footnotes(self):
+    def write_footnotes(self):
         return [
             r"""
             \text{By Post. 1, line } |AB \text{ can be}
@@ -128,14 +127,14 @@ class Book1Prop2(GreekConstructionScenes):
             |BG ~= |BC \text{ and } |AL ~= |BG \ => \ |AL ~= |BC
             """,
         ]
-    def get_tex_to_color_map(self):
+    def write_tex_to_color_map(self):
         return {
-            "{A}": self.given_color,
-            "{B}": self.given_color,
-            "{C}": self.given_color,
-            "{L}": self.solution_color,
-            "|BC": self.given_color,
-            "|AL": self.solution_color,
+            "{A}": self.GIVEN,
+            "{B}": self.GIVEN,
+            "{C}": self.GIVEN,
+            "{L}": self.SOLUTION,
+            "|BC": self.GIVEN,
+            "|AL": self.SOLUTION,
         }
 
     def construct(self):
@@ -145,37 +144,53 @@ class Book1Prop2(GreekConstructionScenes):
         self.Bx, self.By, _ = get_value_tracker_of_point(4.5*RIGHT + 0.5*UP)
         self.Cx, self.Cy, _ = get_value_tracker_of_point(4.5*RIGHT + 2.5*UP)
 
-        """ Variable Initialization """
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=False)
         title, description = self.initialize_introduction()
-        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        footnotes, footnote_animations = self.initialize_footnotes(shift=DOWN*SMALL_BUFF)
         proof_line_numbers, proof_lines = self.initialize_proof()
 
-        givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
-        self.add(*givens, *given_intermediaries)
-
-        A, B, C, label_A, label_B, label_C, line_BC = givens
+        """ Construction Variables """
+        A, B, C, label_A, label_B, label_C, line_BC = self.givens
         (
             D, G, 
             label_D, label_G,
             line_AB, line_BD, line_BG, line_DA, 
             line_AB_marker, line_AL_marker, line_BC_marker, line_BD_marker, line_BG_marker, line_DA_marker,
             circle_B, circle_D,
-        ) = solution_intermediaries
-        L, label_L, line_AL = solution
+        ) = self.solution_intermediaries
+        L, label_L, line_AL = self.solution
 
         """ Animate Introduction """
+        self.add(*self.givens, *self.given_intermediaries)
         self.wait()
 
-        tmp = [mob.copy() for mob in [line_AL_marker, line_BC_marker]]
+        line_BC_marker_copy = line_BC_marker.copy()
+        line_AL_marker_copy = line_AL_marker.copy()
         line_AL_copy = line_AL.copy()
         L_copy = L.copy()
         self.custom_play(
             *Animate(title, description),
             ReplacementTransform(line_BC.copy(), line_AL_copy), ReplacementTransform(C.copy(), L_copy)
         )
-        self.custom_play(*Animate(*tmp))
-        self.wait(3)
-        self.custom_play(*Unanimate(title, description, *tmp, line_AL_copy, L_copy))
+        self.custom_play(*Animate(line_BC_marker_copy, line_AL_marker_copy))
+        self.wait(2)
+        rotate_explaination = self.MathTex(r"""
+            \text{Line can be constructed in any direction}
+            \text{as long as one of the endpoints is point } {A}
+        """)
+        self.custom_play(*Animate(rotate_explaination))
+        self.wait()
+        line_vgroup = VGroup(*[line_AL_copy, L_copy, line_AL_marker_copy]).clear_updaters()
+        self.add(line_vgroup)
+        self.remove(line_AL_copy, L_copy, line_AL_marker_copy)
+        self.custom_play(Rotate(line_vgroup, angle=2*PI, about_point=line_AL_copy.get_start()), run_time=2)
+        self.wait(2)
+        self.custom_play(
+            *Unanimate(title, description, line_AL_copy, L_copy, line_BC_marker_copy, line_AL_marker_copy),
+            *Unanimate(rotate_explaination)
+        )
         self.wait()
         
         """ Animate Proof Line Numbers """
@@ -186,13 +201,13 @@ class Book1Prop2(GreekConstructionScenes):
         # Equilateral triangle ABD
         self.custom_play(
             Animate(line_AB),
-            first_footnote_animation
+            footnote_animations[0]
         )
         self.wait(2)
         self.custom_play(*Animate(D, label_D))
         self.custom_play(
             *Animate(line_BD, line_DA, line_AB_marker, line_BD_marker, line_DA_marker),
-            next_footnote_animations[0]
+            footnote_animations[1]
         )
         self.wait(2)
         self.animate_proof_line(
@@ -210,20 +225,20 @@ class Book1Prop2(GreekConstructionScenes):
         # Draw ()BC
         self.custom_play(
             Animate(circle_B),
-            next_footnote_animations[1]
+            footnote_animations[2]
         )
         self.wait(3)
 
         # Extend |DB to point G
         self.custom_play(
             Animate(line_BG),
-            next_footnote_animations[2]
+            footnote_animations[3]
         )
         self.custom_play(*Animate(G, label_G))
         self.wait(2)
         self.custom_play(
             *Animate(line_BC_marker, line_BG_marker),
-            next_footnote_animations[3]
+            footnote_animations[4]
         )
         self.wait(2)
         self.animate_proof_line(
@@ -247,7 +262,7 @@ class Book1Prop2(GreekConstructionScenes):
         self.wait()
         self.custom_play(
             Animate(circle_D),
-            next_footnote_animations[4]
+            footnote_animations[5]
         )
 
         self.wait(2)
@@ -263,7 +278,7 @@ class Book1Prop2(GreekConstructionScenes):
         self.wait()
         self.custom_play(
             Animate(line_AL),
-            next_footnote_animations[5]
+            footnote_animations[6]
         )
         self.custom_play(*Animate(L, label_L))
        
@@ -277,11 +292,11 @@ class Book1Prop2(GreekConstructionScenes):
         #     circle_D,
         # play=True)
         # self.wait()
-        self.custom_play(next_footnote_animations[6])
+        self.custom_play(footnote_animations[7])
         self.wait(3)
         self.custom_play(
             Animate(line_AL_marker),
-            next_footnote_animations[7]
+            footnote_animations[8]
         )
         self.wait(2)
         self.animate_proof_line(*proof_lines[3:5])
@@ -297,7 +312,7 @@ class Book1Prop2(GreekConstructionScenes):
         )
         self.custom_play(
             *emphasize_animations,
-            next_footnote_animations[8]
+            footnote_animations[9]
         )
         self.wait(2)
         self.animate_proof_line(
@@ -313,7 +328,7 @@ class Book1Prop2(GreekConstructionScenes):
         clear_emphasize_animations = self.clear_emphasize()
         self.custom_play(
             *clear_emphasize_animations,
-            last_footnote_animation
+            footnote_animations[-1]
         )
 
         self.wait(2)
