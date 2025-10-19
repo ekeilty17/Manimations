@@ -7,3 +7,4 @@
 - You don't have to emphasize everything, only if the picture gets sufficiently complicated
 - `.wait(2)` at least once every time `footnotes` change
 - `.wait(3)` for the first title
+- If I'm animating angle `<ABC`, then I only care about point B and not point A nor C

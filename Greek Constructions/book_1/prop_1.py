@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop1(GreekConstructionScenes):
 
@@ -25,7 +26,7 @@ class Book1Prop1(GreekConstructionScenes):
         intermediaries = ()
         return givens, intermediaries
 
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         A, label_A, B, label_B, line_AB = givens
 
         circle_A = OrientedCircle(center=A.get_center(), start=B.get_center())
@@ -55,35 +56,17 @@ class Book1Prop1(GreekConstructionScenes):
     
     def write_footnotes(self):
         return [
-            r"""
-            \text{By Post. 3, } ()A \text{ can be}
-            \text{drawn given center } {A} \text{ and radius } |AB
-            """,
-            r"""
-            \text{Likewise by Post. 3, } ()B \text{ can be}
-            \text{drawn given center } {B} \text{ and radius } |BA
-            """,
+            ft.postulate3(r"()A", r"{A}", r"|AB"),
+            ft.postulate3(r"()B", r"{B}", r"|BA"),
             r"""
             \text{Euclid does not explicity state that the}
             \text{intersection of two circles results in a}
             \text{point, this is assumed as self-evident}
             """,
-            r"""
-            \text{By Post. 1, line } |BC \text{ can be}
-            \text{drawn between points } {B} \text{ and } {C}
-            """,
-            r"""
-            \text{Likewise by Post. 1, line } |AC \text{ can be}
-            \text{drawn between points } {A} \text{ and } {C}
-            """,
-            r"""
-            \text{Line } |AB \text{ and line } |BC \text{ are both radii}
-            \text{of } ()B \text{, thus by Def. 15 they are congruent}
-            """,
-            r"""
-            \text{Likewise, line } |AB \text{ and line } |AC \text{ are both radii}
-            \text{of } ()A \text{, thus by Def. 15 they are congruent}
-            """,
+            ft.postulate1(r"|BC", r"{B}", r"{C}"),
+            ft.postulate1(r"|AC", r"{A}", r"{C}"),
+            ft.definition15(r"()B", r"|AB", r"|BC"),
+            ft.definition15(r"()A", r"|AB", r"|AC"),
             r"""
             \text{By CN. 1 (Transitivity Property of Congruence), }
             |AC ~= |AB \text{ and } |AB ~= |BC \ => \ |AC ~= |BC

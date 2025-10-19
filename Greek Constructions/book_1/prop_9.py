@@ -13,7 +13,7 @@ class Book1Prop9(GreekConstructionScenes):
         To cut a given rectilinear angle in half
     """
 
-    def get_givens(self):
+    def write_givens(self):
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, UP)
         B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, LEFT)
         C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, RIGHT)
@@ -29,7 +29,7 @@ class Book1Prop9(GreekConstructionScenes):
         intermediaries = ()
         return givens, intermediaries
 
-    def get_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         (
             A, B, C,
             label_A, label_B, label_C,
@@ -50,6 +50,7 @@ class Book1Prop9(GreekConstructionScenes):
 
         line_DF = Line(D.get_center(), F.get_center())
         line_EF = Line(E.get_center(), F.get_center())
+        line_DE_marker = get_line_marker(line_DE, "||")
         line_DF_marker = get_line_marker(line_DF, "||")
         line_EF_marker = get_line_marker(line_EF, "||")
 
@@ -63,24 +64,57 @@ class Book1Prop9(GreekConstructionScenes):
             D, E, F,
             label_D, label_E, label_F,
             line_AD, line_AE, line_DE, line_DF, line_EF,
-            line_AD_marker, line_AE_marker, line_AF_marker, line_DF_marker, line_EF_marker,
+            line_AD_marker, line_AE_marker, line_AF_marker, line_DE_marker, line_DF_marker, line_EF_marker,
             angle_BAF_marker, angle_CAF_marker
         )
         solution = (line_AF)
         return intermediaries, solution
 
-    def get_proof_spec(self):
+    def write_proof_spec(self):
         return [
-            ("|AD ~ |AE",   "[Prop. 1.3]"),
-            ("|DF ~ |EF",   "[Prop. 1.1]"),
-            ("|AF ~ |FA",   "[Reflexivity]"),
-            ("^ADF ~ ^AEF", "[Prop. 1.8 (SSS)]"),
-            ("<DAF ~ <EAF", "[Prop. 1.8]", self.SOLUTION)
+            ("|AD ~= |AE",   "[Prop. 1.3]"),
+            ("|DF ~= |EF",   "[Prop. 1.1]"),
+            ("|AF ~= |FA",   "[Reflexivity]"),
+            ("^ADF ~= ^AEF", "[Prop. 1.8 (SSS)]"),
+            ("<DAF ~= <EAF", "[Prop. 1.8]", self.SOLUTION)
         ]
-    def get_proof_color_map(self):
+    def write_footnotes(self):
+        return [
+            r"""
+            \text{Pick any point along line } |AB
+            """,
+            r"""
+            \text{By Post. 1 draw line } |AD
+            """,
+            r"""
+            \text{Using Prop 1.3, copy line } |AD \text{ onto line } |AC
+            """,
+            r"""
+            \text{By Post. 1 draw line } |DE
+            """,
+            r"""
+            \text{By Prop. 1.1, construct equilateral}
+            \text{triangle } ^ADE \text{ with base } |DE
+            """,
+            r"""
+            \text{By Post. 1 draw line } |AF
+            """,
+            r"""
+            |AF \text{ is congruent to itself (Reflectivity)}
+            """,
+            r"""
+            |AD ~= |AE , |DF ~= |EF , |AF ~= |FA
+            \text{Thus, } ^ADF ~= ^AEF \text{ by SSS}
+            """,
+            r"""
+            \text{Since } ^ADF ~= ^AEF \text{ corresponding}
+            \text{counterparts are congruent}
+            """
+        ]
+    def write_tex_to_color_map(self):
         return {
-            "|AF": self.solution_color,
-            "|FA": self.solution_color,
+            "|AF": self.SOLUTION,
+            "|FA": self.SOLUTION,
         }
 
     def construct(self):
@@ -91,44 +125,156 @@ class Book1Prop9(GreekConstructionScenes):
         self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 2*DOWN + 1.5*RIGHT)
         self.D_percentage = ValueTracker(0.7)
 
-        """ Preparation """
-        givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
-        self.add(*givens, *given_intermediaries)
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=False)
+        title, description = self.initialize_introduction()
+        footnotes, footnote_animations = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
 
+        """ Construction Variables """
         (
             A, B, C,
             label_A, label_B, label_C,
             line_AB, line_AC
-        ) = givens
+        ) = self.givens
+        () = self.given_intermediaries
         (
             D, E, F,
             label_D, label_E, label_F,
             line_AD, line_AE, line_DE, line_DF, line_EF,
-            line_AD_marker, line_AE_marker, line_AF_marker, line_DF_marker, line_EF_marker,
+            line_AD_marker, line_AE_marker, line_AF_marker, line_DE_marker, line_DF_marker, line_EF_marker,
             angle_BAF_marker, angle_CAF_marker
-        ) = solution_intermediaries
-        line_AF = solution
+        ) = self.solution_intermediaries
+        line_AF = self.solution
 
-        """ Introduction """
-        title, description = self.initialize_introduction(self.title, self.description)
-        
-        self.custom_play(title, description)
+        """ Animate Introduction """
+        self.add(*self.givens, *self.given_intermediaries)
         self.wait()
-        self.custom_unplay(title, description)
-        self.wait()
-        # tmp1 = [mob.copy() for mob in [A, B, C]]
-        # tmp2 = [mob.copy() for mob in [D, E, F]]
-        # self.play(Animate(*tmp1))
-        # self.play(Animate(*tmp2))
-        # self.wait()
-        # self.play(Unanimate(title, description, *tmp1, *tmp2))
-        # self.wait()
-        
-        """ Proof Initialization """
-        proof_line_numbers, proof_lines = self.initialize_proof()
-        self.play(Write(proof_line_numbers))
+
+        tmp = [mob.copy() for mob in [line_AF, angle_BAF_marker, angle_CAF_marker]]
+        self.custom_play(*Animate(title, description, *tmp))
+        self.wait(2)
+        self.custom_play(*Unanimate(title, description, *tmp))
         self.wait()
         
-        """ Start of animation """
-        self.add(*solution_intermediaries, *solution)
-        self.play(Write(proof_lines))
+        """ Animate Proof Line Numbers """
+        self.animate_proof_line_numbers(proof_line_numbers)
+        self.wait()
+        
+        """ Animation Construction """
+        # Draw point D
+        self.custom_play(
+            *Animate(D, label_D),
+            footnote_animations[0]
+        )
+        self.wait()
+        self.custom_play(
+            Animate(line_AD),
+            footnote_animations[1]
+        )
+        self.wait(2)
+
+        # Copy |AD to |AE
+        self.custom_play(
+            ReplacementTransform(line_AD.copy(), line_AE),
+            ReplacementTransform(D.copy(), E),
+            ReplacementTransform(label_D.copy(), label_E),
+            footnote_animations[2]
+        )
+        self.custom_play(*Animate(line_AD_marker, line_AE_marker))
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[0],
+            source_mobjects=[
+                A, D, E, F, 
+                label_A, label_D, label_E, label_F,
+                line_AD, line_AE,
+                line_AD_marker, line_AE_marker
+            ]
+        )
+        self.wait(2)
+
+        # Draw |DE
+        self.custom_play(
+            Animate(line_DE),
+            footnote_animations[3]
+        )
+        self.wait(2)
+
+        # Draw equilateral triangle ^DEF
+        self.custom_play(*Animate(F, label_F))
+        self.custom_play(
+            *Animate(line_DF, line_EF, line_DE_marker, line_DF_marker, line_EF_marker),
+            footnote_animations[4]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[1],
+            source_mobjects=[
+                D, E, F,
+                label_D, label_E, label_F,
+                line_DF, line_EF,
+                line_DF_marker, line_EF_marker
+            ]
+        )
+        self.wait(2)
+        
+        # |AF ~= |FA
+        self.custom_play(
+            Animate(line_AF),
+            footnote_animations[5]
+        )
+        self.wait()
+        self.custom_play(
+            Animate(line_AF_marker),
+            footnote_animations[6]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[2],
+            source_mobjects=[A, F, label_A, label_F, line_AF, line_AF_marker]
+        )
+        self.wait(2)
+
+        # ^ADF ~= ^AEF
+        emphasize_animations = self.emphasize(
+            A, D, E, F, 
+            label_A, label_D, label_E, label_F, 
+            line_AD, line_AE, line_AF, line_DF, line_EF,
+            line_AD_marker, line_AE_marker, line_AF_marker, line_DF_marker, line_EF_marker,
+        )
+        self.custom_play(
+            *emphasize_animations,
+            footnote_animations[7]
+        )
+        self.wait(2)
+        self.animate_proof_line(proof_lines[3])
+        self.wait(2)
+
+        # Therefore <DAF ~= <EAF
+        self.custom_play(
+            *Animate(angle_BAF_marker, angle_CAF_marker),
+            footnote_animations[8]
+        )
+        self.wait(2)
+        self.animate_proof_line(
+            proof_lines[4],
+            source_mobjects=[
+                A, D, E, 
+                label_A, label_D, label_E,
+                line_AD, line_AE, line_AF,
+                angle_BAF_marker, angle_CAF_marker
+            ]
+        )
+        self.wait(2)
+
+        clear_emphasize_animations = self.clear_emphasize()
+        self.custom_play(
+            *clear_emphasize_animations,
+            footnote_animations[-1]
+        )
+        self.wait()
+
+        self.write_QED()
+        self.wait()

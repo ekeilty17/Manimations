@@ -2,6 +2,7 @@ from .angles import *
 from .animations import *
 from .circles import *
 from .dots import *
+from .explanations import *
 from .lines import *
 from .misc import *
 from .text import *

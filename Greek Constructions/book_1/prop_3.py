@@ -30,7 +30,7 @@ class Book1Prop3(GreekConstructionScenes):
         intermediaries = ()
         return givens, intermediaries
 
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         A, B, label_A, label_B, line_AB, line_C, label_C = givens
 
         line_AD = Line(A.get_center(), A.get_center() + line_C.get_length() * RIGHT).rotate(self.line_AD_direction.get_value(), about_point=A.get_center())

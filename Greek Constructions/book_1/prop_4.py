@@ -74,26 +74,28 @@ class Book1Prop4(GreekConstructionScenes):
         )
         return givens, intermediaries
 
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
 
         # (
         #     A, B, C, D, E, F,
         #     label_A, label_B, label_C, label_D, label_E, label_F,
         #     line_AB, line_CA, line_DE, line_FD,
-
+        # ) = givens
+        # (
         #     line_BC, line_EF,
         #     line_AB_marker, line_CA_marker, line_DE_marker, line_FD_marker,
         #     angle_A_marker, angle_D_marker
-        # ) = givens
+        # ) = given_intermediaries
         (
             line_AB_marker, line_CA_marker, line_DE_marker, line_FD_marker,
             angle_A_marker, angle_D_marker,
-            
+        ) = givens
+        (
             A, B, C, D, E, F,
             label_A, label_B, label_C, label_D, label_E, label_F,
             line_AB, line_CA, line_DE, line_FD,
             line_BC, line_EF,
-        ) = givens
+        ) = given_intermediaries
 
         line_BC_marker = get_line_marker(line_BC, marker_type="///")
         line_EF_marker = get_line_marker(line_EF, marker_type="///")
@@ -149,7 +151,7 @@ class Book1Prop4(GreekConstructionScenes):
 
             ("|BC c= |EF",      "[Post. 1]"),
 
-            ("^ABC ~= ^EDF",    "[CN. 4]",          self.SOLUTION),
+            ("^ABC ~= ^DEF",    "[CN. 4]",          self.SOLUTION),
 
             ("|BC ~= |EF",      "[CN. 4]",          self.SOLUTION),
             ("<B ~= <E",        "[CN. 4]",          self.SOLUTION),
@@ -258,28 +260,7 @@ class Book1Prop4(GreekConstructionScenes):
         self.wait(2)
 
         """ Superposition Explanation """
-        superposition_explanation = self.MathTex(
-        r"""
-        \textbf{Superposition} \text{ is a method where two figures}
-        \text{are imagined to be placed on top of each other.}
-        \text{This is often written as ``applying" one figure}
-        \text{to another.}
-        """,
-        r"""
-        \text{By modern standards, superposition constitutes}
-        \text{a new axiom. It's essentially equivalent to}
-        \text{assuming the Euclidean plane allows for rigid}
-        \text{motion. Most modern treatments (such as}
-        \text{Hilbert's ``Foundations of Geometry") instead}
-        \text{choose to assume SAS as the axiom.}
-        """,
-        r"""
-        \text{While the rigorous axiomatization of Euclidean
-        \text{geometry is an interesting topic, the goal}
-        \text{here is simply to reproduce Euclid's original}
-        \text{reasoning as presented in ``Euclid's Elements}
-        \text{of Geometry".}
-        """)
+        superposition_explanation = self.MathTex(*superposition_explanation_text())
         superposition_explanation.move_to(self.LEFT_CENTER)
         triangle_ABC = VGroup([
             A, B, C,
@@ -408,7 +389,7 @@ class Book1Prop4(GreekConstructionScenes):
         self.wait(2)
 
         line_BC_EF_arc = ArcBetweenPoints(B_E.get_center(), C_F.get_center()).set_z_index(line_BC_EF.z_index)
-        shaded_region = VMobject(color=RED, fill_opacity=0.5, stroke_width=0)
+        shaded_region = VMobject(color=self.color_map[self.IMPOSSIBLE], fill_opacity=0.5, stroke_width=0)
         shaded_region.set_points_as_corners([
             *line_BC_EF_arc.points,
             B_E.get_center(),

@@ -27,7 +27,7 @@ class Book1Prop2(GreekConstructionScenes):
         intermediaries = ()
         return givens, intermediaries
 
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         A, B, C, label_A, label_B, label_C, line_BC = givens
         
         # Base of equilateral triangle

@@ -13,8 +13,10 @@ class GreekConstructionScenes(Scene):
     SOLUTION = "solution"
     INTERMEDIARY = "intermediary"
     ASSUMPTION = "assumption"
+    PBC_INTERMEDIARY = "proof by contradiction intermediary"
     CONTRADICTION = "constradition"
     DEFAULT = "default"
+    IMPOSSIBLE = "impossible"
 
     LHS = "LHS"
     RHS = "RHS"
@@ -58,6 +60,7 @@ class GreekConstructionScenes(Scene):
             self.ASSUMPTION: BLUE_B,#ManimColor("#cc0000"),
             self.CONTRADICTION: RED_A,#ManimColor("#cc0000"),
             self.DEFAULT: self.camera.background_color,
+            self.IMPOSSIBLE: ManimColor("#cc0000")
         }
 
         self.z_index_map = {
@@ -116,7 +119,7 @@ class GreekConstructionScenes(Scene):
     """ Abstract Methods to be Implemented """
     def write_givens(self):
         raise NotImplementedError("'write_givens' not implemented by child class.")
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         raise NotImplementedError("'write_solution' not implemented by child class.")
     def write_proof_spec(self):
         raise NotImplementedError("'write_proof_spec' not implemented by child class.")
@@ -128,16 +131,18 @@ class GreekConstructionScenes(Scene):
     """ Getters for the Abstract Methods Above """
     def get_givens(self):
         return self.write_givens()
-    def get_solution(self, *givens):
-        return self.write_solution(*givens)
+    def get_solution(self, givens, given_intermediaries):
+        return self.write_solution(givens, given_intermediaries)
     def get_proof_spec(self):
         # Normalize proof spec so it's  -->  [(statement, justification, color), ...]
         default_color = self.color_map[self.DEFAULT]
         return [
             (
-                (t[0] if isinstance(t[0], (list, tuple)) else [t[0]]), 
+                (t[0] if isinstance(t[0], (list, tuple)) else [t[0]]),
                 (t[1] if isinstance(t[1], (list, tuple)) else [t[1]]), 
-                (self.color_map.get(t[2], default_color) if len(t) > 2 else default_color)) 
+                (self.color_map.get(t[2], default_color) if len(t) > 2 else default_color),
+                (t[2] in [self.ASSUMPTION, self.PBC_INTERMEDIARY, self.CONTRADICTION] if len(t) > 2 else False)
+            ) 
             for t in self.write_proof_spec()
         ]
     def get_footnotes(self):
@@ -185,11 +190,15 @@ class GreekConstructionScenes(Scene):
                 mob.set_z_index(max([m.z_index for m in mob]))
 
     def _compute_construction(self):
-        self.givens, self.given_intermediaries = self.get_givens()
-        self.solution_intermediaries, self.solution = self.get_solution(*self.givens, *self.given_intermediaries)
-        self.format_givens(*self.givens)
-        self.format_solution(*self.solution)
-        return self.givens, self.given_intermediaries, self.solution_intermediaries, self.solution
+        # It's very important that this does not write to 
+        # self.givens, self.given_intermediaries, self.solution_intermediaries, and self.solution
+        # We want to keep the original variable references
+        # Later in `_add_mobject_updater`, the old_mob becomes the new_mob, which allows us to keep the same reference
+        givens, given_intermediaries = self.get_givens()
+        solution_intermediaries, solution = self.get_solution(givens, given_intermediaries)
+        self.format_givens(*givens)
+        self.format_solution(*solution)
+        return givens, given_intermediaries, solution_intermediaries, solution
 
     def get_all_construction_mobjects(self):
         return *self.givens, *self.given_intermediaries, *self.solution_intermediaries, *self.solution
@@ -240,7 +249,8 @@ class GreekConstructionScenes(Scene):
         self.add(LHS_bg, center_line)
 
     def initialize_construction(self, add_updaters=False):
-        self._compute_construction()        # instantiates (self.givens, self.given_intermediaries, self.solution_intermediaries, self.solution)
+        # This is the one and only time that we instantiate these variables
+        self.givens, self.given_intermediaries, self.solution_intermediaries, self.solution = self._compute_construction()
         if add_updaters:
             self.add_updaters()
 
@@ -248,7 +258,7 @@ class GreekConstructionScenes(Scene):
         title, description = self.Text(self.description, title=self.title)
         return title, description
 
-    def initialize_proof(self, scale=None):
+    def initialize_proof(self, scale=None, shift=ORIGIN):
         if scale is None:
             scale = self.scale_map[self.PROOF]
 
@@ -274,8 +284,9 @@ class GreekConstructionScenes(Scene):
                 .set_z_index(self.z_index_map[self.JUSTIFICATION]) 
             for line in proof_spec
         ])
+        is_lines_indented = [line[3] for line in proof_spec]
         
-        line_numbers, statements, justifications = format_proof(line_numbers, statements, justifications)
+        line_numbers, statements, justifications = format_proof(line_numbers, statements, justifications, is_lines_indented)
 
         # Add the indicators only after the formatting (so it doesn't affect the centering of line_numbers)
         line_number_indicators =  VGroup([
@@ -291,6 +302,13 @@ class GreekConstructionScenes(Scene):
         proof = VGroup(proof_line_numbers, proof_lines)
         proof.set_z_index(self.z_index_map[self.PROOF]).scale(scale)
         proof.move_to(self.LEFT_CENTER).to_edge(LEFT)
+        proof.shift(shift)
+
+        # Good for debugging orientation
+        # for line_number, statement, justification in zip(line_numbers, statements, justifications):
+        #     self.add(Dot(line_number.get_center(), z_index=10000, color=BLUE))
+        #     self.add(Dot(statement.get_center(), z_index=10000, color=RED))
+        #     self.add(Dot(justification.get_center(), z_index=10000, color=YELLOW))
 
         return proof_line_numbers, proof_lines
 

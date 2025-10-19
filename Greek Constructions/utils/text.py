@@ -16,6 +16,7 @@ def parse_shorthand(shorthand_text):
         "!~": r"\not \sim",
         "!~=": r"\not \cong",
         "!=": r"\not \equiv",
+        "!c=": r"\text{ does not coincide with }",
         "right": r"\text{right}",
         "perp": r"\perp",
         "->": r"\rightarrow",
@@ -48,7 +49,7 @@ def parse_shorthand(shorthand_text):
             statement.append(f"\\text{{Circle}} \\ {term[2:]}")
             continue
         
-        if all([c.isalpha() or c == "'" for c in term]):
+        if all([c.isalpha() or c in ["'", "{", "}"] for c in term]):
             statement.append(term)
             continue
 
@@ -58,30 +59,38 @@ def parse_shorthand(shorthand_text):
     return list(statement)
 
 
-def format_proof(line_numbers, statements, justifications):
+def format_proof(line_numbers, statements, justifications, is_lines_indented):
     # Left align all groups
     line_numbers = line_numbers.arrange(DOWN, aligned_edge=LEFT)
     statements = statements.arrange(DOWN, aligned_edge=LEFT)
     justifications = justifications.arrange(DOWN, aligned_edge=LEFT)
 
-    # align justifications vertically relative to the statements
-    for justification_mob, statement_mob in zip(statements, justifications):
-        y_shift = statement_mob.get_center()[1] - justification_mob.get_center()[1]
-        justification_mob.shift(y_shift * UP)
-
-    # move the left edge of the justifications VGroup on the right edge of the statements VGroup
-    x_shift = (statements.get_right()[0] + MED_LARGE_BUFF) - justifications.get_left()[0]
-    justifications.shift(x_shift * RIGHT)
+    # the `statements` object act as the anchor to everything else
 
     # align line numbers vertically relative to the statements
     for line_number_mob, statement_mob in zip(line_numbers, statements):
         y_shift = statement_mob.get_center()[1] - line_number_mob.get_center()[1]
         line_number_mob.shift(y_shift * UP)
-
+   
     # move the right edge of the line numbers VGroup on the left edge of the statements VGroup
     x_shift = (statements.get_left()[0] - MED_SMALL_BUFF) - line_numbers.get_right()[0]
     line_numbers.shift(RIGHT * x_shift)
 
+    # Intend lines
+    for line_number, statement, is_indented in zip(line_numbers, statements, is_lines_indented):
+        if is_indented:
+            line_number.shift(MED_SMALL_BUFF * RIGHT)
+            statement.shift(MED_SMALL_BUFF * RIGHT)
+    
+    # align justifications vertically relative to the statements
+    for statement_mob, justification_mob in zip(statements, justifications):
+        y_shift = statement_mob.get_center()[1] - justification_mob.get_center()[1]
+        justification_mob.shift(y_shift * UP)
+    
+    # move the left edge of the justifications VGroup on the right edge of the statements VGroup
+    x_shift = (statements.get_right()[0] + MED_LARGE_BUFF) - justifications.get_left()[0]
+    justifications.shift(x_shift * RIGHT)
+    
     return line_numbers, statements, justifications
 
 

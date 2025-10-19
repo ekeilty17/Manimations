@@ -40,23 +40,21 @@ class BookNPropM(GreekConstructionScenes):
         self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*LEFT)
         self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*RIGHT)
 
-        """ Variable Initialization """
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=False)
         title, description = self.initialize_introduction()
-        footnotes, first_footnote_animation, next_footnote_animations, last_footnote_animation = self.initialize_footnotes()
+        footnotes, footnote_animations = self.initialize_footnotes()
         proof_line_numbers, proof_lines = self.initialize_proof()
 
-        givens, given_intermediaries, solution_intermediaries, solution = self.initialize_construction(add_updaters=False)
-        self.add(*givens, *given_intermediaries)
-
-        # self.add(*solution_intermediaries, *solution)
-        # return
-
-        # A, B, C = givens
-        # D, E, F = given_intermediaries
-        # G, H, I = solution_intermediaries
-        # J, K, L = solution
+        """ Construction Variables """
+        () = self.givens
+        () = self.given_intermediaries
+        () = self.solution_intermediaries
+        () = self.solution
 
         """ Animate Introduction """
+        self.add(*self.givens, *self.given_intermediaries)
         self.wait()
 
         self.custom_play(*Animate(title, description))
@@ -64,11 +62,11 @@ class BookNPropM(GreekConstructionScenes):
         self.custom_play(*Unanimate(title, description))
         self.wait()
         
-        """ Proof Initialization """
-        proof_line_numbers, proof_lines = self.initialize_proof()
-        self.play(Write(proof_line_numbers))
+        """ Animate Proof Line Numbers """
+        self.animate_proof_line_numbers(proof_line_numbers)
         self.wait()
         
-        """ Start of animation """
-        self.add(*solution_intermediaries, *solution)
-        self.play(Write(proof_lines))
+        """ Animation Construction """
+        self.add(*self.solution_intermediaries, *self.solution)
+        self.add(proof_lines)
+        self.wait()

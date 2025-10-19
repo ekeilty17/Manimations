@@ -38,12 +38,13 @@ class Book1Prop5(GreekConstructionScenes):
         )
         return givens, intermediaries
 
-    def write_solution(self, *givens):
+    def write_solution(self, givens, given_intermediaries):
         (
             A, B, C, label_A, label_B, label_C, line_AB, line_CA,
-
-            line_BC, line_AB_marker, line_CA_marker,
         ) = givens
+        (
+            line_BC, line_AB_marker, line_CA_marker,
+        ) = given_intermediaries
 
         angle_A_marker = get_angle_marker(line_AB.copy().rotate(PI), line_CA.copy().rotate(PI), ")", radius=0.5)
 
@@ -216,7 +217,7 @@ class Book1Prop5(GreekConstructionScenes):
         self.animate_proof_line_numbers(proof_line_numbers)
         self.wait()
 
-        """ Animation """
+        """ Animation Construction """
         self.animate_proof_line(
             proof_lines[0],
             source_mobjects=[A, B, C, label_A, label_B, label_C, line_AB, line_CA, line_AB_marker, line_CA_marker]

@@ -3,6 +3,9 @@ from manim import *
 def get_unit_direction(line):
     return (line.get_end() - line.get_start()) / line.get_length()
 
+def get_unit_perpendicular_direction(line):
+    return get_unit_direction(line.rotate(PI))
+
 def extend_line_by_length(line, length, switch_direction=False):
     unit_direction = get_unit_direction(line)
     mult = -1 if switch_direction else 1
@@ -21,6 +24,7 @@ def get_line_marker(
         marker_type="/", 
         flip_horizontally=False, flip_vertically=False, 
         rotate=0, position=0.5,
+        stroke_width=2,
         color=None, z_index=None,
     ):
     # Create marker
@@ -31,7 +35,7 @@ def get_line_marker(
         marker_length = 2*SMALL_BUFF
         marker_list = []
         for i in range(len(marker_type)):
-            marker_i = Line(DOWN*marker_length/2 + RIGHT*i*marker_step, UP*marker_length/2 + RIGHT*i*marker_step, stroke_width=2)
+            marker_i = Line(DOWN*marker_length/2 + RIGHT*i*marker_step, UP*marker_length/2 + RIGHT*i*marker_step, stroke_width=stroke_width)
             if marker_type[i] == "/":
                 marker_i.rotate(-2*SMALL_BUFF)
             marker_list.append(marker_i)
