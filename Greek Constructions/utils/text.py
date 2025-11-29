@@ -8,17 +8,17 @@ def parse_shorthand(shorthand_text):
     character_map = {
         "~": r"\sim",
         "~=": r"\cong",
-        "=": r"\equiv",
+        "=": r"=",
+        "==": r"\equiv",
         "c=": r"\text{ coincides with }",
         ",": r", \ ",
         "<": r"<",
         ">": r">",
-        "!~": r"\not \sim",
-        "!~=": r"\not \cong",
-        "!=": r"\not \equiv",
         "!c=": r"\text{ does not coincide with }",
         "right": r"\text{right}",
         "perp": r"\perp",
+        "||": r"\parallel",
+        "!||": r"\nparallel",
         "->": r"\rightarrow",
         "<-": r"\leftarrow",
         "<->": r"\leftrightarrow",
@@ -27,7 +27,9 @@ def parse_shorthand(shorthand_text):
         "<=>": r"\Leftrightarrow",
         r"\ ": r"\ ",
         "+": r"+",
-        "-": r"-"
+        "-": r"-",
+        r"\\": r"\\",
+        r"\rightanglesqr": r"\mathlarger{\mathlarger{\rightanglesqr}}",
     }
 
     statement = []
@@ -35,20 +37,24 @@ def parse_shorthand(shorthand_text):
         if term in character_map:
             statement.append(character_map[term])
             continue
+        if term[0] == "!":
+            if term[1:] in character_map:
+                statement.append(fr"\not {character_map[term[1:]]}")
+                continue
         
         if term[0] == "|":
-            statement.append(f"\\overline{{{term[1:]}}}")
+            statement.append(fr"\overline{{{term[1:]}}}")
             continue
         if term[0] == "<":
-            statement.append(f"\\angle {term[1:]}")
+            statement.append(fr"\angle {term[1:]}")
             continue
         if term[0] == "^":
             statement.append(f"\\triangle {term[1:]}")
             continue
         if term[0:2] == "()":
-            statement.append(f"\\text{{Circle}} \\ {term[2:]}")
+            statement.append(fr"\text{{Circle}} \ {term[2:]}")
             continue
-        
+
         if all([c.isalpha() or c in ["'", "{", "}"] for c in term]):
             statement.append(term)
             continue
@@ -69,7 +75,8 @@ def format_proof(line_numbers, statements, justifications, is_lines_indented):
 
     # align line numbers vertically relative to the statements
     for line_number_mob, statement_mob in zip(line_numbers, statements):
-        y_shift = statement_mob.get_center()[1] - line_number_mob.get_center()[1]
+        # statement_mob is a VGroup of proof lines, so we take [0] to line up with the top
+        y_shift = statement_mob[0].get_center()[1] - line_number_mob.get_center()[1]
         line_number_mob.shift(y_shift * UP)
    
     # move the right edge of the line numbers VGroup on the left edge of the statements VGroup
@@ -84,7 +91,8 @@ def format_proof(line_numbers, statements, justifications, is_lines_indented):
     
     # align justifications vertically relative to the statements
     for statement_mob, justification_mob in zip(statements, justifications):
-        y_shift = statement_mob.get_center()[1] - justification_mob.get_center()[1]
+        # statement_mob is a VGroup of proof lines, so we take [0] to line up with the top
+        y_shift = statement_mob[0].get_center()[1] - justification_mob.get_center()[1]
         justification_mob.shift(y_shift * UP)
     
     # move the left edge of the justifications VGroup on the right edge of the statements VGroup

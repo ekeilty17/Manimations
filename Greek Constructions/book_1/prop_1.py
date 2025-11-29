@@ -48,10 +48,10 @@ class Book1Prop1(GreekConstructionScenes):
 
     def write_proof_spec(self):
         return [    
-            ("|AB ~= |BC",                          "[Def. 15]"),
-            ("|AB ~= |AC",                          "[Def. 15]"),
-            ("|AC ~= |BC",                          "[CN. 1]"),
-            (("^ABC", r"\text{ is equilateral}"),   "[Def. 20]",        self.SOLUTION)
+            ("|AB ~= |BC",                      "[Def. 15]"),
+            ("|AB ~= |AC",                      "[Def. 15]"),
+            ("|AC ~= |BC",                      "[CN. 1]"),
+            (r"^ABC \text{ is equilateral}",    "[Def. 20]",        self.SOLUTION)
         ]
     
     def write_footnotes(self):
@@ -63,18 +63,12 @@ class Book1Prop1(GreekConstructionScenes):
             \text{intersection of two circles results in a}
             \text{point, this is assumed as self-evident}
             """,
-            ft.postulate1(r"|BC", r"{B}", r"{C}"),
-            ft.postulate1(r"|AC", r"{A}", r"{C}"),
+            ft.postulate1(r"|BC", start=r"{B}", end=r"{C}"),
+            ft.postulate1(r"|AC", start=r"{A}", end=r"{C}"),
             ft.definition15(r"()B", r"|AB", r"|BC"),
             ft.definition15(r"()A", r"|AB", r"|AC"),
-            r"""
-            \text{By CN. 1 (Transitivity Property of Congruence), }
-            |AC ~= |AB \text{ and } |AB ~= |BC \ => \ |AC ~= |BC
-            """,
-            r"""
-            \text{Thus all sides of } ^ABC \text{ are congruent,}
-            \text{by Def. 20 it is an equilateral triangle}
-            """
+            ft.common_notion1(r"|AC", r"|AB", r"|BC"),
+            ft.definition20_equilateral_triangle(r"^ABC")
         ]
     
     def write_tex_to_color_map(self):

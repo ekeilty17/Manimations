@@ -20,3 +20,25 @@ def OrientedCircle(center, start, other_direction=False, **kwargs):
     circle.rotate(angle)
 
     return circle
+
+from shapely.geometry import Point as shapely_Point
+def get_circle_circle_intersection(circle1, circle2):
+    # Get centers
+    x1, y1, _ = circle1.get_center()
+    x2, y2, _ = circle2.get_center()
+
+    # Create Shapely circles (as boundaries)
+    C1 = shapely_Point(x1, y1).buffer(circle1.radius).boundary
+    C2 = shapely_Point(x2, y2).buffer(circle2.radius).boundary
+
+    inter = C1.intersection(C2)
+
+    if inter.is_empty:
+        return None
+
+    if inter.geom_type == "Point":          # tangent
+        return [inter.x, inter.y, 0]
+    elif inter.geom_type == 'MultiPoint':   # typical case
+        return ([pt.x, pt.y, 0] for pt in inter.geoms)
+    else:
+        raise ValueError(f"Unexpected geometry type: {inter.geom_type}")

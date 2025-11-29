@@ -1,8 +1,11 @@
 def reflexivity(geometric_object):
     return fr"{geometric_object} \text{{ is congruent to itself (Reflexivity)}}"
 
-def corresponding_parts_of_congruent_triangles_are_congruent(triangle1, triangle2):
+def random_point_on_line(line, point=None):
+    if point is None:
+        return fr"""
+            \text{{Pick any point along line }} {line}
+        """
     return fr"""
-        \text{{Since }} {triangle1} ~= {triangle2} , \text{{corresponding}}
-        \text{{counterparts are congruent}}
+        \text{{Let }} {point} \text{{ be any point along line }} {line}
     """

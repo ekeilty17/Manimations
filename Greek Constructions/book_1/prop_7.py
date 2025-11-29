@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop7(GreekConstructionScenes):
 
@@ -36,8 +37,8 @@ class Book1Prop7(GreekConstructionScenes):
         line_CA_marker = get_line_marker(line_CA, "/")
         line_BC_marker = get_line_marker(line_BC, "//")
         
-        line_CA_given_marker = get_line_marker(line_BC_given, "/")
-        line_BC_given_marker = get_line_marker(line_CA_given, "//")
+        line_CA_given_marker = get_line_marker(line_CA_given, "/")
+        line_BC_given_marker = get_line_marker(line_BC_given, "//")
 
         givens = (
             A, B,
@@ -115,15 +116,9 @@ class Book1Prop7(GreekConstructionScenes):
             \text{Assume torward a contradiction that}
             \text{such a point } {D} \text{ exists}
             """,
-            r"""
-            \text{By Post. 1 draw line } |CD
-            """,
-            r"""
-            \text{Since } |AC ~= |AD , \text{by Prop. 1.6 } <ACD ~= <ADC
-            """,
-            r"""
-            \text{Since } |BC ~= |BD , \text{by Prop. 1.6 } <BCD ~= <BDC
-            """,
+            ft.postulate1(r"|CD"),
+            ft.book1.prop6(r"|AC", r"|AD", r"<ACD", r"<ADC"),
+            ft.book1.prop6(r"|BC", r"|BD", r"<BCD", r"<BDC"),
             r"""
             <BCD \text{ lies inside } <ACD
             \text{thus, by construction } <ACD > <BCD
@@ -212,7 +207,6 @@ class Book1Prop7(GreekConstructionScenes):
         self.custom_play(*Unanimate(title, description))
         self.wait()
         
-        return
         """ Animate Proof Line Numbers """
         self.animate_proof_line_numbers(proof_line_numbers)
         self.wait()

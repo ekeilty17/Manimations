@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop5(GreekConstructionScenes):
 
@@ -113,49 +114,33 @@ class Book1Prop5(GreekConstructionScenes):
     def write_footnotes(self):
         return [
             r"""
-            \text{Extend lines } |AB \text{ and } |AC \text{ by any length,}
+            \text{By Prop 2, extend lines } |AB \text{ and } |AC \text{ by any length,}
             \text{assume } |AD \text{ is shorter than } |AE
             """,
-            r"""
-            \text{Pick any point along line } |BD
-            """,
-            r"""
-            \text{Using Prop 1.3, copy line } |BF \text{ onto line } |CE
-            """,
-            r"""
-            |AB + |BF = |AF
-            |AC + |CG = |AG
-            |AB ~= |AC  \text{ and } |BF ~= CG
-            \text{Therefore, } |AF ~= |AG \text{ by CN. 2 (Addition)}
-            """,
-            r"""
-            <{A} \text{ is congruent to itself (Reflectivity)}
-            """,
-            r"""
-            \text{By Post. 1 draw lines } |FC \text{ and } |GB
-            """,
-            r"""
-            |BA ~= |CA , <BAG ~= <CAF , \text{and } |AG ~= |AF
-            \text{therefore } ^AFC ~= ^AGB \text{ by SAS}
-            """,
-            r"""
-            \text{Since } ^AFC ~= ^AGB \text{ corresponding}
-            \text{counterparts are congruent}
-            """,
-            r"""
-            |BF ~= |CG , <BFC ~= <CGB, \text{ and } |FC ~= |GB
-            \text{therefore } ^BFC ~= ^CGB \text{ by SAS}
-            """,
-            r"""
-            \text{Since } ^BFC ~= ^CGB \text{ corresponding}
-            \text{counterparts are congruent}
-            """,
-            r"""
-            <ABC + <CBG = <ABG
-            <ACB + <BCF = <ACF
-            <ABG ~= <ACF \text{ and } <BCF ~= <CBG
-            \text{Therefore, } <ABC ~= <ACB \text{ by CN. 3 (Subtraction)}
-            """,
+            ft.random_point_on_line(r"|BD"),
+            ft.book1.prop3(r"|BF", r"|CE", r"{C}"),
+            ft.common_notion3(
+                r"|AF ~= |AG", 
+                r"""
+                |AB + |BF = |AF
+                |AC + |CG = |AG
+                |AB ~= |AC \text{ and } |BF ~= CG
+                """
+            ),
+            ft.reflexivity(r"<{A}"),
+            ft.postulate1_multiple_lines(r"|FC", r"|GB"),
+            ft.book1.prop4(r"^AFC", r"^AGB", r"|BA ~= |CA", r"<BAG ~= <CAF", r"|AG ~= |AF"),
+            ft.common_notion4_congruent_triangles(r"^AFC", r"^AGB"),
+            ft.book1.prop4(r"^BFC", r"^CGB", r"|BF ~= |CG", r"<BFC ~= <CGB", r"|FC ~= |GB"),
+            ft.common_notion4_congruent_triangles(r"^BFC", r"^CGB"),
+            ft.common_notion3(
+                r"<ABC ~= <ACB", 
+                r"""
+                <ABC + <CBG = <ABG
+                <ACB + <BCF = <ACF
+                <ABG ~= <ACF \text{ and } <BCF ~= <CBG
+                """
+            ),
         ]
 
     def write_tex_to_color_map(self):

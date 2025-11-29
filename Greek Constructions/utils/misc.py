@@ -24,7 +24,7 @@ def get_equilateral_triangle_apex(line):
 
 # To compute intersections between lines and circles
 from shapely.geometry import LineString
-from shapely.geometry import Point
+from shapely.geometry import Point as shapely_Point
 def get_line_circle_intersection(line, circle):
         
     x1, y1, _ = line.get_start()
@@ -32,16 +32,17 @@ def get_line_circle_intersection(line, circle):
     L = LineString([(x1, y1), (x2, y2)])
 
     cx, cy, _ = circle.get_center()
-    C = Point((cx, cy)).buffer(circle.radius).boundary
+    C = shapely_Point((cx, cy)).buffer(circle.radius).boundary
     
     inter = L.intersection(C)
 
     if inter.is_empty:
-        return None, None
-    elif inter.geom_type == 'Point':
-        return Dot([inter.x, inter.y, 0])
-    elif inter.geom_type == 'MultiPoint':
-        return (Dot([pt.x, pt.y, 0]) for pt in inter.geoms)
+        return None
+    
+    elif inter.geom_type == 'Point':        # tangent
+        return [inter.x, inter.y, 0]
+    elif inter.geom_type == 'MultiPoint':   # typical case
+        return ([pt.x, pt.y, 0] for pt in inter.geoms)
     else:
         raise ValueError(f"Unexpected geometry type: {inter.geom_type}")
 

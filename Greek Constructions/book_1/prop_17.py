@@ -6,26 +6,31 @@ from greek_constructions import GreekConstructionScenes
 from manim import *
 from utils import *
 
-class BookNPropM(GreekConstructionScenes):
+class Book1Prop17(GreekConstructionScenes):
 
-    title = "Book N Proposition M"
+    title = "Book 1 Proposition 17"
     description = """
-        <Copy from Euclid's Elements>
+        For any triangle, (the sum of) two angles 
+        taken together in any (possible way) is 
+        less than two right-angles.
     """
 
     def write_givens(self):
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, UP)
-        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DL)
-        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DR)
+        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DOWN)
+        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DOWN)
         
         line_AB, line_BC, line_CA = get_triangle_edges(A, B, C)
 
+        _, line_CD = extend_line_by_length(line_BC, self.D_length.get_value())
+        D, label_D = self.get_dot_and_label("D", line_CD.get_end(), DOWN)
+
         givens = (
             A, B, C,
-            label_A, label_B, label_C,
-            line_AB, line_BC, line_CA
+            label_A, label_B, label_C, 
+            line_AB, line_BC, line_CA, 
         )
-        intermediaries = ()
+        intermediaries = (D, label_D, line_CD)
         return givens, intermediaries
 
     def write_solution(self, givens, given_intermediaries):
@@ -34,7 +39,12 @@ class BookNPropM(GreekConstructionScenes):
         return intermediaries, solution
 
     def write_proof_spec(self):
-        return []
+        return [
+            (r"<ABC < <ACD", "[Prop. 1.16]"),
+            (r"<ABC + <ACB \\ < <ACD + <ACB", "[CN. 2]"),
+            (r"<ACD + <ACB = \rightanglesqr + \rightanglesqr", "[Prop. 1.13]"),
+            (r"<ABC + <ACB < \rightanglesqr + \rightanglesqr", "[CN. 1]", self.SOLUTION)
+        ]
     def write_footnotes(self):
         return []
     def write_tex_to_color_map(self):
@@ -43,16 +53,17 @@ class BookNPropM(GreekConstructionScenes):
     def construct(self):
         
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + UP + LEFT)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 1.5*UP + 2.5*LEFT)
         self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*LEFT)
         self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*RIGHT)
+        self.D_length = ValueTracker(1)
 
         """ Initialization """
         self.initialize_canvas()
         self.initialize_construction(add_updaters=False)
         title, description = self.initialize_introduction()
         footnotes, footnote_animations = self.initialize_footnotes()
-        proof_line_numbers, proof_lines = self.initialize_proof()
+        proof_line_numbers, proof_lines = self.initialize_proof(0.9)
 
         """ Construction Variables """
         # () = self.givens

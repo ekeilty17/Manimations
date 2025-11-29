@@ -6,18 +6,19 @@ from greek_constructions import GreekConstructionScenes
 from manim import *
 from utils import *
 
-class BookNPropM(GreekConstructionScenes):
+class Book1Prop19(GreekConstructionScenes):
 
-    title = "Book N Proposition M"
+    title = "Book 1 Proposition 19"
     description = """
-        <Copy from Euclid's Elements>
+        In any triangle, the greater angle is 
+        subtended by the greater side.
     """
 
     def write_givens(self):
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, UP)
-        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DL)
-        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DR)
-        
+        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, LEFT)
+        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DOWN)
+
         line_AB, line_BC, line_CA = get_triangle_edges(A, B, C)
 
         givens = (
@@ -34,7 +35,16 @@ class BookNPropM(GreekConstructionScenes):
         return intermediaries, solution
 
     def write_proof_spec(self):
-        return []
+        return [
+            (r"<B > <C", "[Given]", self.GIVEN),
+            (r"|AC ~= |AB", "[Assumption]", self.ASSUMPTION),
+            (r"<B ~= <C", "[Prop. 1.5]", self.CONTRADICTION),
+            (r"|AC !~= |AB", "[Contradiction]"),
+            (r"|AC < |AB", "[Assumption]", self.ASSUMPTION),
+            (r"<B < <C", "[Prop. 1.18]", self.CONTRADICTION),
+            (r"|AC !< |AB", "[Contradiction]"),
+            (r"|AC > |AB", "[4. + 7.]", self.SOLUTION),
+        ]
     def write_footnotes(self):
         return []
     def write_tex_to_color_map(self):
@@ -43,9 +53,9 @@ class BookNPropM(GreekConstructionScenes):
     def construct(self):
         
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + UP + LEFT)
-        self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*LEFT)
-        self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*RIGHT)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 2*UP + 0.5*RIGHT)
+        self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + UP + LEFT)
+        self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 2*DOWN + 0.5*RIGHT)
 
         """ Initialization """
         self.initialize_canvas()

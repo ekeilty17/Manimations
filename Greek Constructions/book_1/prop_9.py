@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop9(GreekConstructionScenes):
 
@@ -80,36 +81,15 @@ class Book1Prop9(GreekConstructionScenes):
         ]
     def write_footnotes(self):
         return [
-            r"""
-            \text{Pick any point along line } |AB
-            """,
-            r"""
-            \text{By Post. 1 draw line } |AD
-            """,
-            r"""
-            \text{Using Prop 1.3, copy line } |AD \text{ onto line } |AC
-            """,
-            r"""
-            \text{By Post. 1 draw line } |DE
-            """,
-            r"""
-            \text{By Prop. 1.1, construct equilateral}
-            \text{triangle } ^ADE \text{ with base } |DE
-            """,
-            r"""
-            \text{By Post. 1 draw line } |AF
-            """,
-            r"""
-            |AF \text{ is congruent to itself (Reflectivity)}
-            """,
-            r"""
-            |AD ~= |AE , |DF ~= |EF , |AF ~= |FA
-            \text{Thus, } ^ADF ~= ^AEF \text{ by SSS}
-            """,
-            r"""
-            \text{Since } ^ADF ~= ^AEF \text{ corresponding}
-            \text{counterparts are congruent}
-            """
+            ft.random_point_on_line(r"|AB", r"{D}"),
+            ft.postulate1(r"|AD"),
+            ft.book1.prop3(r"|AD", r"|AC", r"{A}"),
+            ft.postulate1(r"|DE"),
+            ft.book1.prop1(r"^ADE", r"|DE"),
+            ft.postulate1(r"|AF"),
+            ft.reflexivity(r"|AF"),
+            ft.book1.prop8(r"^ADF", r"^AEF", r"|AD ~= |AE", r"|DF ~= |EF", r"|AF ~= |FA"),
+            ft.common_notion4_congruent_triangles(r"^ADF", r"^AEF", r"<DAF ~= <EAF")
         ]
     def write_tex_to_color_map(self):
         return {

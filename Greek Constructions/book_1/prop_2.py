@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop2(GreekConstructionScenes):
 
@@ -77,55 +78,28 @@ class Book1Prop2(GreekConstructionScenes):
 
     def write_proof_spec(self):
         return [    
-            (("^ABD", r"\text{ is equilateral}"),   "[Prop. 1.1]"),
-            ("|AB ~= |BD ~= |AD",                   "[Def. 20]"),
-            ("|BC ~= |BG",                          "[Def. 15]"),
-            ("|DL ~= |DG",                          "[Def. 15]"),
-            ("|AL ~= |BG",                          "[CN. 3]"),
-            ("|AL ~= |BC",                          "[CN. 1]",      self.SOLUTION),
+            (r"^ABD \text{ is equilateral}",    "[Prop. 1.1]"),
+            ("|AB ~= |BD ~= |AD",               "[Def. 20]"),
+            ("|BC ~= |BG",                      "[Def. 15]"),
+            ("|DL ~= |DG",                      "[Def. 15]"),
+            ("|AL ~= |BG",                      "[CN. 3]"),
+            ("|AL ~= |BC",                      "[CN. 1]",      self.SOLUTION),
         ]
     def write_footnotes(self):
         return [
-            r"""
-            \text{By Post. 1, line } |AB \text{ can be}
-            \text{drawn between points } {A} \text{ and } {B}
-            """,
-            r"""
-            \text{By Prop. 1.1, construct equilateral}
-            \text{triangle } ^ABD \text{ with base } |AB
-            """,
-            r"""
-            \text{By Post. 3, construct } ()BC
-            \text{with center } {B} \text{ and radius } |BC
-            """,
-            r"""
-            \text{By Post. 1, extend line } |DB \text{ until it}
-            \text{intersects } ()BC \text{ at } {G}
-            """,
-            r"""
-            \text{Line } |BC \text{ and line } |BG \text{ are both radii of}
-            ()BC \text{, thus by Def. 15 they are congruent}
-            """,
-            r"""
-            \text{By Post. 3, construct } ()DG
-            \text{with center } {D} \text{ and radius } |DG
-            """,
-            r"""
-            \text{By Post. 1, extend line } |DA \text{ until it}
-            \text{intersects } ()DG \text{ at } {L}
-            """,
-            r"""
-            \text{Both line } |DG \text{ and line } |DL \text{ are radii of } 
-            ()DG \text{, thus by Def. 15 they are congruent}
-            """,
-            r"""
-            |DA + |AL = |DL ~= |DG = |DB + |BG \ \text{ and } |DA ~= |DB
-            \text{Therefore, } |AL ~= |BG \text{ by CN. 3 (Subtraction)}
-            """,
-            r"""
-            \text{By CN. 1 (Transitivity Property of Congruence), }
-            |BG ~= |BC \text{ and } |AL ~= |BG \ => \ |AL ~= |BC
-            """,
+            ft.postulate1(r"|AB", start=r"{A}", end=r"{B}"),
+            ft.book1.prop1(r"^ABD", r"|AB"),
+            ft.postulate3(r"()BC", r"{B}", r"|BC"),
+            ft.postulate2(r"|DB", r"()BC", r"{G}"),
+            ft.definition15(r"()BC", r"|BC", r"|BG"),
+            ft.postulate3(r"()DG", r"{D}", r"|DG"),
+            ft.postulate2(r"|DA", r"()DG", r"{L}"),
+            ft.definition15(r"()DG", r"|DG", r"|DL"),
+            ft.common_notion3(
+                r"|AL ~= |BG", 
+                r"|DA + |AL = |DL ~= |DG = |DB + |BG \ \text{ and } |DA ~= |DB"
+            ),
+            ft.common_notion1(r"|BC", r"|BG", r"|AL")
         ]
     def write_tex_to_color_map(self):
         return {

@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop8(GreekConstructionScenes):
 

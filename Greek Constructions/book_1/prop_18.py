@@ -6,26 +6,42 @@ from greek_constructions import GreekConstructionScenes
 from manim import *
 from utils import *
 
-class BookNPropM(GreekConstructionScenes):
+class Book1Prop18(GreekConstructionScenes):
 
-    title = "Book N Proposition M"
+    title = "Book 1 Proposition 18"
     description = """
-        <Copy from Euclid's Elements>
+        In any triangle, the greater side subtends 
+        the greater angle.
     """
 
     def write_givens(self):
         A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, UP)
-        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DL)
-        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DR)
+        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DOWN)
+        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DOWN)
         
         line_AB, line_BC, line_CA = get_triangle_edges(A, B, C)
 
+        _, line_AD = extend_line_by_length(line_CA, line_AB.get_length(), switch_direction=True)
+        D, label_D = self.get_dot_and_label("D", line_AD.get_end(), UR)
+        line_BD = Line(B.get_center(), D.get_center())
+
+        line_AB_marker = get_line_marker(line_AB, marker_type="|")
+        line_AD_marker = get_line_marker(line_AD, marker_type="|")
+
+        angle_ABD_marker = get_angle_marker(line_AB, line_BD, marker_type="(")
+        angle_ADB_marker = get_angle_marker(line_AD, line_BD.copy().rotate(PI), marker_type=")")
+
         givens = (
             A, B, C,
-            label_A, label_B, label_C,
-            line_AB, line_BC, line_CA
+            label_A, label_B, label_C, 
+            line_AB, line_BC, line_CA, 
         )
-        intermediaries = ()
+        intermediaries = (
+            D, label_D, 
+            line_BD, 
+            line_AB_marker, line_AD_marker,
+            angle_ABD_marker, angle_ADB_marker
+        )
         return givens, intermediaries
 
     def write_solution(self, givens, given_intermediaries):
@@ -34,7 +50,15 @@ class BookNPropM(GreekConstructionScenes):
         return intermediaries, solution
 
     def write_proof_spec(self):
-        return []
+        return [
+            (r"|AC > |AB", "[Given]", self.GIVEN),
+            (r"|AB ~= |AD", "[Prop. 1.3]"),
+            (r"<ABD ~= <ADB", "[Prop. 1.5]"),
+            (r"<ADB > <C", "[Prop. 1.16]"),
+            (r"<ABD > <C", "[CN. 1]"),
+            (r"<ABC > <ABD", "[Construction]"),
+            (r"<ABC > <C", "[CN. 1]", self.SOLUTION),
+        ]
     def write_footnotes(self):
         return []
     def write_tex_to_color_map(self):
@@ -43,7 +67,7 @@ class BookNPropM(GreekConstructionScenes):
     def construct(self):
         
         """ Value Trackers """
-        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + UP + LEFT)
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + 1.5*UP + 2.5*LEFT)
         self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*LEFT)
         self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.5*RIGHT)
 

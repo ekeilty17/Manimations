@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop6(GreekConstructionScenes):
 
@@ -95,27 +96,19 @@ class Book1Prop6(GreekConstructionScenes):
             """,
             r"""
             \text{Suppose } |AB > |AC,
-            \text{then using Prop 1.3 we can copy } |AC \text{ onto } |AB
+            \text{then using Prop 1.3 copy } |AC \text{ onto } |AB
             """,
             r"""
             \text{Note, this is now an impossible diagram,}
             \text{which is evident visually. Now we just}
             \text{have to prove it.}
             """,
+            ft.postulate1(r"|CD", r"{C}", r"{D}"),
+            ft.reflexivity(r"|BC"),
+            ft.book1.prop4(r"^ABC", r"^DBA", r"|AC ~= |BD", r"<ABC ~= <ACB", r"|BC ~= |CB"),
             r"""
-            \text{By Post. 1, line } |CD \text{ can be}
-            \text{drawn between points } {C} \text{ and } {D}
-            """,
-            r"""
-            \text{Line } |BC \text{ is congruent to itself (Reflexivity)}
-            """,
-            r"""
-            |AC ~= |BD , <ABC ~= <ACB , |BC ~= |CB
-            \text{therefore by SAS (Prop. 1.4), } ^ABC ~= ^DBA
-            """,
-            r"""
-            \text{But clearly } ^DBA \text{ is contained inside }^ABC
-            \text{so they cannot be congruent}
+            \text{But clearly } ^DBA \text{ is contained inside } ^ABC
+            \text{so by CN. 5 they cannot be congruent}
             """,
             r"""
             \text{Thus, we have arrived at a contradiction}

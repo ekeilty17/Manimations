@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop4(GreekConstructionScenes):
 
@@ -167,7 +168,7 @@ class Book1Prop4(GreekConstructionScenes):
             \text{Let point } {A} \text{ coincide with point } {D}
             """,
             r"""
-            \text{Since } |AB ~= |DE \text{,}
+            \text{Since } |AB ~= |DE ,
             \text{let line } |AB \text{ coincide with line } |DE
             """,
             r"""
@@ -177,11 +178,11 @@ class Book1Prop4(GreekConstructionScenes):
             """,
             r"""
             \text{Since } |AB c= |DE
-            \text{ their endpoints must coincide}
+            \text{their endpoints must coincide}
             """,
             r"""
             \text{Likewise, since } |AC c= |DF
-            \text{ their endpoints must coincide}
+            \text{their endpoints must coincide}
             """,
             r"""
             \text{Thus, line } |BC \text{ must coincide with line } |EF
@@ -192,7 +193,7 @@ class Book1Prop4(GreekConstructionScenes):
             """,
             r"""
             \text{Thus all points and lines in } ^ABC 
-            \text{ coincide with their counterparts in } ^DEF
+            \text{coincide with their counterparts in } ^DEF
             \text{so these triangles must be congruent}
             """,
             r"""

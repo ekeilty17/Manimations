@@ -1,0 +1,125 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from greek_constructions import GreekConstructionScenes
+
+from manim import *
+from utils import *
+
+class Book1Prop37(GreekConstructionScenes):
+
+    title = "Book 1 Proposition 37"
+    description = """
+       Triangles which are on the same base 
+       and between the same parallels are 
+       equal to one another.
+    """
+
+    def write_givens(self):
+        A, label_A = self.get_dot_and_label("A", self.Ax.get_value() * RIGHT + self.Ay.get_value() * UP, UP)
+        B, label_B = self.get_dot_and_label("B", self.Bx.get_value() * RIGHT + self.By.get_value() * UP, DL)
+        C, label_C = self.get_dot_and_label("C", self.Cx.get_value() * RIGHT + self.Cy.get_value() * UP, DR)
+        
+        line_AB, line_BC, line_CA = get_triangle_edges(A, B, C)
+
+        line_BC = Line(B.get_center(), C.get_center())
+        line_AD, _ = extend_line_by_length(line_BC, self.line_AD_length.get_value(), switch_direction=True)
+        line_AD.shift(A.get_center() - B.get_center())
+
+        D, label_D = self.get_dot_and_label("D", line_AD.get_end(), UP)
+        line_DB = Line(D.get_center(), B.get_center())
+        line_CD = Line(C.get_center(), D.get_center())
+
+        line_BE = line_CA.copy().shift(B.get_center() - C.get_center())
+        line_FC = line_DB.copy().shift(C.get_center() - B.get_center())
+        
+        E, label_E = self.get_dot_and_label("E", line_BE.get_end(), UP)
+        F, label_F = self.get_dot_and_label("F", line_FC.get_start(), UP)
+
+        line_AE = Line(A.get_center(), E.get_center())
+        line_DF = Line(D.get_center(), F.get_center())
+
+        line_AD_marker = get_line_marker(line_AD, marker_type=">")
+        line_BC_marker = get_line_marker(line_BC, marker_type=">")
+        line_AE_marker = get_line_marker(line_AE, marker_type="<")
+        line_DF_marker = get_line_marker(line_DF, marker_type=">")
+        line_BE_marker = get_line_marker(line_BE, marker_type=">>")
+        line_CA_marker = get_line_marker(line_CA, marker_type=">>")
+        line_FC_marker = get_line_marker(line_FC, marker_type="<<<")
+        line_DB_marker = get_line_marker(line_DB, marker_type="<<<")
+
+
+        givens = (
+            A, B, C, D, 
+            label_A, label_B, label_C, label_D, 
+            line_AB, line_AD, line_BC, line_CA, line_CD, line_DB,
+        )
+        intermediaries = (
+            E, F, 
+            label_E, label_F,
+            line_AE, line_BE, line_DF, line_FC,
+            line_AD_marker, line_AE_marker, line_BC_marker, line_BE_marker, line_CA_marker, line_DB_marker, line_DF_marker, line_FC_marker,
+        )
+        return givens, intermediaries
+
+    def write_solution(self, givens, given_intermediaries):
+        intermediaries = ()
+        solution = ()
+        return intermediaries, solution
+
+    def write_proof_spec(self):
+        return [
+            (r"|AD || |BC", "[Given]", self.GIVEN),
+            (r"|AE || |BC", "[Construction]"), 
+            (r"|BE || |CA", "[Prop. 1.31]"),
+            (r"EBCA \text{ is a parallelogram}", "[??]"),
+            (r"|DF || |CB", "[Construction]"), 
+            (r"|CF || |BD", "[Prop. 1.31]"),
+            (r"DBCF \text{ is a parallelogram}", "[??]"),
+            (r"EBCA = DBCF", "[Prop. 1.35]"),
+            (r"^ABC ~= ^DBC", "[Prop. 1.34]", self.SOLUTION),
+        ]
+    def write_footnotes(self):
+        return []
+    def write_tex_to_color_map(self):
+        return {}
+
+    def construct(self):
+        
+        """ Value Trackers """
+        self.Ax, self.Ay, _ = get_value_tracker_of_point(self.RIGHT_CENTER + UP + 0.75*LEFT)
+        self.Bx, self.By, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.25*LEFT)
+        self.Cx, self.Cy, _ = get_value_tracker_of_point(self.RIGHT_CENTER + DOWN + 1.25*RIGHT)
+
+        self.line_AD_length = ValueTracker(1.25)
+
+        """ Initialization """
+        self.initialize_canvas()
+        self.initialize_construction(add_updaters=False)
+        title, description = self.initialize_introduction()
+        footnotes, footnote_animations = self.initialize_footnotes()
+        proof_line_numbers, proof_lines = self.initialize_proof()
+
+        """ Construction Variables """
+        # () = self.givens
+        # () = self.given_intermediaries
+        # () = self.solution_intermediaries
+        # () = self.solution
+
+        """ Animate Introduction """
+        self.add(*self.givens, *self.given_intermediaries)
+        self.wait()
+
+        self.custom_play(*Animate(title, description))
+        self.wait(3)
+        self.custom_play(*Unanimate(title, description))
+        self.wait()
+        
+        """ Animate Proof Line Numbers """
+        self.animate_proof_line_numbers(proof_line_numbers)
+        self.wait()
+        
+        """ Animation Construction """
+        self.add(*self.solution_intermediaries, *self.solution)
+        self.add(proof_lines)
+        self.wait()

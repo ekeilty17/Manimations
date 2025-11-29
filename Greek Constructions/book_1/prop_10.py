@@ -46,6 +46,8 @@ class Book1Prop10(GreekConstructionScenes):
         line_CD = Line(C.get_center(), D.get_center())
         line_CD_marker = get_line_marker(line_CD, "||", flip_vertically=True)
 
+        line_CD_short, _, _ = interpolate_line(line_CD, 0.7)
+
         angle_ACD_marker = get_angle_marker(line_CA.copy().rotate(PI), line_CD, ")", radius=0.4)
         angle_BCD_marker = get_angle_marker(line_BC, line_CD, "(", radius=0.5)
 
@@ -57,7 +59,7 @@ class Book1Prop10(GreekConstructionScenes):
         intermediaries = (
             C, 
             label_C,
-            line_AD, line_BC, line_CA, line_CD, line_DB,
+            line_AD, line_BC, line_CA, line_CD, line_CD_short, line_DB,
             line_AB_marker, line_AD_marker, line_BC_marker, line_CA_marker, line_CD_marker, line_DB_marker,
             angle_ACD_marker, angle_BCD_marker,
         )
@@ -79,15 +81,12 @@ class Book1Prop10(GreekConstructionScenes):
         return [
             ft.book1.prop1(r"^ABC", r"|AB"),
             ft.book1.prop9(r"<ACB"),
-            r"""
-            \text{Extend the bisector of angle } <ACB
-            \text{until it intersects line } |AB
-            """,
-            ft.reflexivity(r"\text{Line } |CD"),
-            ft.book1.prop4(r"|AC ~= |BC", r"<ACD ~= <BCD", r"|CD ~= |DC", r"^ACD", r"^BCD"),
-            ft.corresponding_parts_of_congruent_triangles_are_congruent(r"^ADF", r"^AEF"),
+            ft.postulate2(r"\text{the bisector of angle } <ACB", r"|AB", r"{D}", line_text_long=True),
+            ft.reflexivity(r"|CD"),
+            ft.book1.prop4(r"^ACD", r"^BCD", r"|AC ~= |BC", r"<ACD ~= <BCD", r"|CD ~= |DC"),
+            ft.common_notion4_congruent_triangles(r"^ADF", r"^AEF"),
         ]
-    def write_proof_color_map(self):
+    def write_tex_to_color_map(self):
         return {
             "{A}": self.GIVEN,
             "{B}": self.GIVEN,
@@ -113,7 +112,7 @@ class Book1Prop10(GreekConstructionScenes):
         (
             C, 
             label_C,
-            line_AD, line_BC, line_CA, line_CD, line_DB,
+            line_AD, line_BC, line_CA, line_CD, line_CD_short, line_DB,
             line_AB_marker, line_AD_marker, line_BC_marker, line_CA_marker, line_CD_marker, line_DB_marker,
             angle_ACD_marker, angle_BCD_marker,
         ) = self.solution_intermediaries
@@ -158,7 +157,7 @@ class Book1Prop10(GreekConstructionScenes):
 
         # Bisect angle C
         self.custom_play(
-            Animate(line_CD),
+            Animate(line_CD_short),
             Unanimate(line_AB_marker),
             footnote_animations[1]
         )
@@ -177,8 +176,11 @@ class Book1Prop10(GreekConstructionScenes):
 
         # Draw intersection point D
         self.custom_play(
-            *Animate(D, label_D),
+            ReplacementTransform(line_CD_short, line_CD),
             footnote_animations[2]
+        )
+        self.custom_play(
+            *Animate(D, label_D)
         )
         self.wait(2)
 

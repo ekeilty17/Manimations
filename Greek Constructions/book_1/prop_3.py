@@ -5,6 +5,7 @@ from greek_constructions import GreekConstructionScenes
 
 from manim import *
 from utils import *
+import footnote_text as ft
 
 class Book1Prop3(GreekConstructionScenes):
 
@@ -65,27 +66,16 @@ class Book1Prop3(GreekConstructionScenes):
         ]
     def write_footnotes(self):
         return [
-            r"""
-            \text{Using the procedure in Prop. 1.2,}
-            \text{copy line } |C \text{ to point } {A}
-            """,
+            ft.book1.prop2(r"|C", r"{A}"),
             r"""
             \text{The direction of line } |AD \text{ is determined}
             \text{by the procedure of Prop. 1.2, however}
             \text{we will treat it as pseudo-random}
             """,
-            r"""
-            \text{By Post. 3, construct } ()AD
-            \text{with center } {A} \text{ and radius } |AD
-            """,
-            r"""
-            \text{Line } |AD \text{ and line } |AE \text{ are both radii of}
-            ()AD \text{, thus by Def. 15 they are congruent}
-            """,
-            r"""
-            \text{By CN. 1 (Transitivity Property of Congruence), }
-            |C ~= |AD \text{ and } |AD ~= |AE \ => \ |C ~= |AE
-            """,
+            ft.postulate3(r"()AD", r"{A}", r"|AD"),
+            ft.postulate1(r"|AE", r"{A}", r"{E}"),
+            ft.definition15(r"()AD", r"|AD", r"|AE"),
+            ft.common_notion1(r"|C", r"|AD", r"|AE")
         ]
     def write_tex_to_color_map(self):
         return {
@@ -174,12 +164,15 @@ class Book1Prop3(GreekConstructionScenes):
         self.wait(2)
 
         # |AD ~= |AE
-        self.custom_play(*Animate(E, label_E))
+        self.custom_play(
+            *Animate(E, label_E),
+            footnote_animations[3]
+        )
         self.custom_play(Animate(line_AE))
         self.wait(2)
         self.custom_play(
             Animate(line_AE_marker),
-            footnote_animations[3]
+            footnote_animations[4]
         )
         self.wait(2)
         self.animate_proof_line(
@@ -190,7 +183,7 @@ class Book1Prop3(GreekConstructionScenes):
         self.wait(2)
 
         # Thus, |C ~= |AE
-        self.custom_play(footnote_animations[4])
+        self.custom_play(footnote_animations[5])
         self.wait(2)
         self.animate_proof_line(
             proof_lines[2],

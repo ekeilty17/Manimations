@@ -44,6 +44,11 @@ class GreekConstructionScenes(Scene):
 
         self.add_and_remove_only = False
 
+        self.tex_template = TexTemplate()
+        self.tex_template.add_to_preamble(r"\usepackage{stix}")
+        self.tex_template.add_to_preamble(r"\usepackage{relsize}")
+        # self.tex_template.add_to_preamble(r"\usepackage{graphicx}")
+
         self.LEFT_CENTER = LEFT * (config.frame_width / 4)
         self.RIGHT_CENTER = RIGHT * (config.frame_width / 4)
         self.vertical_line_x_offset = 0
@@ -134,12 +139,12 @@ class GreekConstructionScenes(Scene):
     def get_solution(self, givens, given_intermediaries):
         return self.write_solution(givens, given_intermediaries)
     def get_proof_spec(self):
-        # Normalize proof spec so it's  -->  [(statement, justification, color), ...]
+        # Normalize proof spec so it's  -->  [(statement, justification, color, is_intented), ...]
         default_color = self.color_map[self.DEFAULT]
         return [
             (
-                (t[0] if isinstance(t[0], (list, tuple)) else [t[0]]),
-                (t[1] if isinstance(t[1], (list, tuple)) else [t[1]]), 
+                t[0],
+                t[1], 
                 (self.color_map.get(t[2], default_color) if len(t) > 2 else default_color),
                 (t[2] in [self.ASSUMPTION, self.PBC_INTERMEDIARY, self.CONTRADICTION] if len(t) > 2 else False)
             ) 
@@ -258,10 +263,10 @@ class GreekConstructionScenes(Scene):
         title, description = self.Text(self.description, title=self.title)
         return title, description
 
-    def initialize_proof(self, scale=None, shift=ORIGIN):
+    def initialize_proof(self, scale=None, shift=ORIGIN, center_horizontally=False):
         if scale is None:
             scale = self.scale_map[self.PROOF]
-
+        
         proof_spec = self.get_proof_spec()
         tex_to_color_map = self.get_tex_to_color_map()
 
@@ -271,15 +276,17 @@ class GreekConstructionScenes(Scene):
                 .set_z_index(self.z_index_map[self.LINE_NUMBER]) 
             for i in range(len(proof_spec))
         ])
+        
         statements = VGroup([
-            MathTex(*parse_shorthand(line[0]))
+            #MathTex(*parse_shorthand(line[0]))
+            self.MathTex(*(line[0].split(r"\\")), paragraph_spacing=1, scale=1)
                 .scale(self.scale_map[self.STATEMENT])
                 .set_color_by_tex_to_color_map(tex_to_color_map)
                 .set_z_index(self.z_index_map[self.STATEMENT])
             for line in proof_spec
         ])
         justifications = VGroup([
-            Text(*line[1])
+            Text(line[1])   # TODO: maybe split on "\n" or something
                 .scale(self.scale_map[self.JUSTIFICATION])
                 .set_z_index(self.z_index_map[self.JUSTIFICATION]) 
             for line in proof_spec
@@ -301,7 +308,10 @@ class GreekConstructionScenes(Scene):
         # Left justify everything
         proof = VGroup(proof_line_numbers, proof_lines)
         proof.set_z_index(self.z_index_map[self.PROOF]).scale(scale)
-        proof.move_to(self.LEFT_CENTER).to_edge(LEFT)
+        
+        proof.move_to(self.LEFT_CENTER)
+        if not center_horizontally:
+            proof.to_edge(LEFT)
         proof.shift(shift)
 
         # Good for debugging orientation
@@ -345,7 +355,7 @@ class GreekConstructionScenes(Scene):
         paragraph_mobjects = []
         for paragraph in paragraphs:
             paragraph = VGroup([
-                MathTex(*line)
+                MathTex(*line, tex_template=self.tex_template)
                     .set_color_by_tex_to_color_map(tex_to_color_map)
                     .scale(scale)
                     .set_z_index(z_index)
@@ -503,6 +513,9 @@ class GreekConstructionScenes(Scene):
         self.add(*mobjects_to_add)
 
     def animate_proof_line_numbers(self, proof_line_numbers):
+        if len(proof_line_numbers) == 0:
+            print("Warning: `proof_line_numbers` is empty")
+            return
         self.custom_play(*Animate(*[anim for proof_line_number in proof_line_numbers for anim in proof_line_number]))
 
     def animate_proof_line(self, *proof_lines, source_mobjects=None, **kwargs):
